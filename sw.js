@@ -1,4 +1,4 @@
-const CACHE_NAME = 'hoktiva-pos-v1';
+const CACHE_NAME = 'hoktiva-pos-v2';
 const APP_SHELL = [
   './',
   './index.html',

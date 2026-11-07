@@ -2,6 +2,8 @@
 
 Aplikasi kasir dan manajemen usaha UMKM berbasis web/PWA.
 
+Source POS diperbarui dari file tahap 6 PDF/WhatsApp yang diunggah pengguna; identitas toko tetap dikelola melalui Profil Toko.
+
 ## Deploy ke GitHub Pages
 1. Unggah seluruh isi folder ini ke branch `main` pada repository.
 2. Aktifkan GitHub Pages dari Settings → Pages → Deploy from a branch → `main` → `/ (root)`.
