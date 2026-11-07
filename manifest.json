@@ -1,23 +1,17 @@
 {
-  "name": "KedaiUMKM Pro",
-  "short_name": "KedaiUMKM",
-  "start_url": "./index.html",
-  "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#4f46e5",
-  "description": "Sistem Manajemen UMKM & Kalkulator HPP",
-  "icons": [
-    {
-      "src": "https://cdn-icons-png.flaticon.com/512/1046/1046784.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "https://cdn-icons-png.flaticon.com/512/1046/1046784.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
-    }
-  ]
+"name": "KedaiUMKM Pro",
+"short_name": "KedaiUMKM",
+"start_url": "./index.html",
+"display": "standalone",
+"background_color": "#f1f5f9",
+"theme_color": "#4f46e5",
+"description": "Aplikasi Kasir POS & Manajemen HPP Keuangan UMKM",
+"icons": [
+{
+"src": "https://cdn-icons-png.flaticon.com/512/3076/3076129.png",
+"sizes": "512x512",
+"type": "image/png",
+"purpose": "any maskable"
+}
+]
 }
