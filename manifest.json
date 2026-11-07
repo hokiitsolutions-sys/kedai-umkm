@@ -1,11 +1,15 @@
 {
+  "id": "com.kedaiumkm.pro",
   "name": "KedaiUMKM Pro",
   "short_name": "KedaiUMKM",
   "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
+  "orientation": "any",
   "background_color": "#ffffff",
   "theme_color": "#4f46e5",
   "description": "Aplikasi Kasir, Manajemen Stok, HPP, dan Keuangan UMKM",
+  "categories": ["business", "finance", "productivity"],
   "icons": [
     {
       "src": "https://cdn-icons-png.flaticon.com/512/3076/3076897.png",
