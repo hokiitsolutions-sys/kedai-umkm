@@ -1,9 +1,8 @@
 self.addEventListener('install', (e) => {
   e.waitUntil(
-    caches.open('kedai-umkm-v1').then((cache) => {
+    caches.open('kedaiumkm-store-v1').then((cache) => {
       return cache.addAll([
-        './index.html',
-        './manifest.json'
+        './index.html'
       ]);
     })
   );
