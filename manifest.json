@@ -1,0 +1,12 @@
+{
+  "background_color": "#ffffff",
+  "dir": "ltr",
+  "display": "standalone",
+  "name": "KedaiUMKM Pro",
+  "orientation": "any",
+  "scope": "/",
+  "short_name": "KedaiUMKM",
+  "start_url": "/kedai-umkm/",
+  "theme_color": "#ffffff",
+  "description": "Sistem Manajemen UMKM &amp; Kalkulator HPP"
+}
