@@ -1,17 +1,12 @@
 {
-"name": "KedaiUMKM Pro",
-"short_name": "KedaiUMKM",
-"start_url": "./index.html",
-"display": "standalone",
-"background_color": "#f1f5f9",
-"theme_color": "#4f46e5",
-"description": "Aplikasi Kasir POS & Manajemen HPP Keuangan UMKM",
-"icons": [
-{
-"src": "https://cdn-icons-png.flaticon.com/512/3076/3076129.png",
-"sizes": "512x512",
-"type": "image/png",
-"purpose": "any maskable"
-}
-]
+  "background_color": "#ffffff",
+  "dir": "ltr",
+  "display": "standalone",
+  "name": "hokiitsolutions-sys.github",
+  "orientation": "any",
+  "scope": "/",
+  "short_name": "hokiitsolutions-sys.github",
+  "start_url": "https://github.com/hokiitsolutions-sys/kedai-umkm.git",
+  "theme_color": "#ffffff",
+  "lang": "id"
 }
