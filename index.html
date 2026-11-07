@@ -1,0 +1,2401 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Manajemen UMKM & Kalkulator HPP</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- html2pdf.js for PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        /* Custom scrollbar for tab items */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col justify-between">
+
+    <!-- Header / Navbar -->
+    <header class="bg-indigo-600 text-white sticky top-0 z-50 shadow-md">
+        <div class="max-w-md mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <div class="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center text-xl">
+                    <i class="fa-solid font-bold fa-store text-yellow-300"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-base leading-tight">KedaiUMKM Pro</h1>
+                    <p class="text-xs text-indigo-200">Keuangan & HPP Otomatis</p>
+                </div>
+            </div>
+            <button onclick="resetAllData()" class="text-xs bg-indigo-700 hover:bg-indigo-800 px-2.5 py-1.5 rounded-lg border border-indigo-500 text-indigo-100 flex items-center gap-1 transition">
+                <i class="fa-solid fa-rotate-left"></i> Reset
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container (Mobile Frame Focused) -->
+    <main class="max-w-md mx-auto w-full flex-grow p-4 space-y-4 pb-24">
+
+        <!-- TAB NAVIGATION -->
+        <div class="flex bg-slate-200 p-1 rounded-2xl overflow-x-auto no-scrollbar gap-1 text-xs font-semibold">
+            <button id="tab-pos-btn" onclick="switchTab('pos')" class="flex-1 py-2.5 px-3 rounded-xl transition text-slate-600 flex items-center justify-center gap-1.5 whitespace-nowrap">
+                <i class="fa-solid fa-cash-register"></i> Kasir POS
+            </button>
+            <button id="tab-dashboard-btn" onclick="switchTab('dashboard')" class="flex-1 py-2.5 px-3 rounded-xl transition text-slate-600 flex items-center justify-center gap-1.5 whitespace-nowrap">
+                <i class="fa-solid fa-chart-pie"></i> Dashboard
+            </button>
+            <button id="tab-dana-btn" onclick="switchTab('dana')" class="flex-1 py-2.5 px-3 rounded-xl transition text-slate-600 flex items-center justify-center gap-1.5 whitespace-nowrap">
+                <i class="fa-solid fa-wallet"></i> Dana Usaha
+            </button>
+            <button id="tab-bahan-btn" onclick="switchTab('bahan')" class="flex-1 py-2.5 px-3 rounded-xl transition text-slate-600 flex items-center justify-center gap-1.5 whitespace-nowrap">
+                <i class="fa-solid fa-boxes-stacked"></i> Bahan Baku
+            </button>
+            <button id="tab-hpp-btn" onclick="switchTab('hpp')" class="flex-1 py-2.5 px-3 rounded-xl transition text-slate-600 flex items-center justify-center gap-1.5 whitespace-nowrap">
+                <i class="fa-solid fa-calculator"></i> Menu & HPP
+            </button>
+            <button id="tab-transaksi-btn" onclick="switchTab('transaksi')" class="flex-1 py-2.5 px-3 rounded-xl transition text-slate-600 flex items-center justify-center gap-1.5 whitespace-nowrap">
+                <i class="fa-solid fa-receipt"></i> Kas Transaksi
+            </button>
+            <button id="tab-toko-btn" onclick="switchTab('toko')" class="flex-1 py-2.5 px-3 rounded-xl transition text-slate-600 flex items-center justify-center gap-1.5 whitespace-nowrap">
+                <i class="fa-solid fa-shop"></i> Profil Toko
+            </button>
+        </div>
+
+        <!-- 0. KASIR POS PREMIUM (FITUR BARU) -->
+        <section id="tab-pos" class="tab-content space-y-4">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h2 class="font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-cash-register text-indigo-600"></i> Kasir Penjualan (POS)
+                    </h2>
+                    <p class="text-xs text-slate-500">Klik menu & atur Qty untuk penjualan kilat</p>
+                </div>
+                <button onclick="clearCart()" class="text-xs text-rose-500 font-semibold hover:underline">
+                    <i class="fa-solid fa-trash-can"></i> Kosongkan
+                </button>
+            </div>
+
+            <!-- KATALOG MENU POS -->
+            <div id="pos-menu-grid" class="grid grid-cols-2 gap-3">
+                <!-- Diisi via JavaScript -->
+            </div>
+
+            <!-- KERANJANG BELANJA (CART) -->
+            <div class="bg-white p-4 rounded-2xl shadow-md border border-slate-200 space-y-3 mt-4">
+                <div class="flex justify-between items-center border-b pb-2">
+                    <h3 class="font-bold text-xs text-slate-800 flex items-center gap-1.5">
+                        <i class="fa-solid fa-cart-shopping text-emerald-600"></i> Ringkasan Pesanan
+                    </h3>
+                    <span id="pos-cart-count" class="text-[10px] bg-emerald-100 text-emerald-700 font-bold px-2 py-0.5 rounded-full">0 Item</span>
+                </div>
+
+                <div id="pos-cart-items" class="space-y-2 max-h-48 overflow-y-auto no-scrollbar">
+                    <p class="text-xs text-center text-slate-400 py-3 italic">Keranjang belanja masih kosong. Klik menu di atas!</p>
+                </div>
+
+                <div class="pt-3 border-t border-slate-100 space-y-2">
+                    <div class="flex justify-between text-xs text-slate-600">
+                        <span>Total HPP Modal:</span>
+                        <span id="pos-total-hpp" class="font-semibold text-slate-700">Rp 0</span>
+                    </div>
+                    <div class="flex justify-between text-base font-extrabold text-slate-800">
+                        <span>Total Bayar:</span>
+                        <span id="pos-total-bayar" class="text-indigo-600">Rp 0</span>
+                    </div>
+                    <button onclick="checkoutPOS()" id="btn-checkout" disabled class="w-full py-3 bg-slate-300 text-slate-500 rounded-xl font-bold text-xs shadow-sm transition flex items-center justify-center gap-2 cursor-not-allowed">
+                        <i class="fa-solid fa-circle-check"></i> Selesaikan Transaksi
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 1. DASHBOARD & ALOKASI DANA -->
+        <section id="tab-dashboard" class="tab-content space-y-4">
+            <!-- Ringkasan Keuangan -->
+            <div class="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-2xl p-5 text-white shadow-lg relative overflow-hidden">
+                <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-xs font-medium text-indigo-200 uppercase tracking-wider">Total Est. Laba Bersih Usaha</p>
+                        <h2 id="dash-laba-bersih" class="text-3xl font-extrabold mt-1">Rp 0</h2>
+                    </div>
+                    <button onclick="openLaporanModal()" class="bg-white/20 hover:bg-white/30 text-white text-xs px-2.5 py-1.5 rounded-xl font-semibold backdrop-blur-sm transition flex items-center gap-1.5 border border-white/20">
+                        <i class="fa-solid fa-file-export"></i> Rekap / Export
+                    </button>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-white/15 text-xs">
+                    <div>
+                        <span class="text-indigo-200 block">Total Pemasukan (POS)</span>
+                        <span id="dash-pemasukan" class="font-bold text-emerald-300 text-sm">Rp 0</span>
+                    </div>
+                    <div>
+                        <span class="text-indigo-200 block">Total Pengeluaran</span>
+                        <span id="dash-pengeluaran" class="font-bold text-rose-300 text-sm">Rp 0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STATUS DANA DAPAT DITARIK (STATUS REALTIME) -->
+            <div class="bg-gradient-to-r from-emerald-500 to-teal-600 p-4 rounded-2xl text-white shadow-md flex justify-between items-center">
+                <div>
+                    <span class="text-[11px] text-emerald-100 font-semibold block">Status Saldo Siap Ditarik (Gaji + Pengembangan)</span>
+                    <h3 id="dash-siap-ditarik" class="text-2xl font-black">Rp 0</h3>
+                </div>
+                <button onclick="switchTab('dana')" class="bg-white text-emerald-700 px-3 py-1.5 rounded-xl font-bold text-xs shadow-sm hover:bg-emerald-50 transition">
+                    Kelola Dana <i class="fa-solid fa-arrow-right ml-1"></i>
+                </button>
+            </div>
+
+            <!-- Alokasi Dana (Persentase Gaji, Cadangan, Pengembangan) -->
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
+                <div class="flex justify-between items-center">
+                    <h3 class="font-bold text-sm text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-piggy-bank text-indigo-500"></i> Pembagian Alokasi Keuntungan
+                    </h3>
+                    <button onclick="openAlokasiModal()" class="text-xs text-indigo-600 font-semibold flex items-center gap-1">
+                        <i class="fa-solid fa-gear"></i> Setting %
+                    </button>
+                </div>
+                
+                <div class="space-y-2 text-xs">
+                    <!-- Gaji -->
+                    <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 flex justify-between items-center">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-7 h-7 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center font-bold">
+                                <i class="fa-solid fa-user-gear text-xs"></i>
+                            </div>
+                            <div>
+                                <div class="font-bold text-slate-700">Gaji Pemilik / Karyawan</div>
+                                <div class="text-[10px] text-slate-400"><span id="pct-gaji-label">50</span>% dari Laba Bersih</div>
+                            </div>
+                        </div>
+                        <span id="val-alokasi-gaji" class="font-bold text-slate-800 text-sm">Rp 0</span>
+                    </div>
+
+                    <!-- Dana Cadangan -->
+                    <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 flex justify-between items-center">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-7 h-7 bg-amber-100 text-amber-600 rounded-lg flex items-center justify-center font-bold">
+                                <i class="fa-solid fa-shield-halved text-xs"></i>
+                            </div>
+                            <div>
+                                <div class="font-bold text-slate-700">Dana Cadangan (Darurat)</div>
+                                <div class="text-[10px] text-slate-400"><span id="pct-cadangan-label">30</span>% dari Laba Bersih</div>
+                            </div>
+                        </div>
+                        <span id="val-alokasi-cadangan" class="font-bold text-slate-800 text-sm">Rp 0</span>
+                    </div>
+
+                    <!-- Dana Pengembangan -->
+                    <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 flex justify-between items-center">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-7 h-7 bg-emerald-100 text-emerald-600 rounded-lg flex items-center justify-center font-bold">
+                                <i class="fa-solid fa-chart-line text-xs"></i>
+                            </div>
+                            <div>
+                                <div class="font-bold text-slate-700">Pengembangan Usaha</div>
+                                <div class="text-[10px] text-slate-400"><span id="pct-pengembangan-label">20</span>% dari Laba Bersih</div>
+                            </div>
+                        </div>
+                        <span id="val-alokasi-pengembangan" class="font-bold text-slate-800 text-sm">Rp 0</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FITUR BARU: HALAMAN DANA USAHA & PENARIKAN -->
+        <section id="tab-dana" class="tab-content space-y-4 hidden">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h2 class="font-bold text-slate-800">Rincian Pos Dana Usaha</h2>
+                    <p class="text-xs text-slate-500">Integrasi otomatis dari Alokasi & Modal Kerja</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 gap-3 text-xs">
+                <!-- 1. MODAL OPERASIONAL & TAMBAHAN TERKUNCI -->
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                    <div class="flex justify-between items-start border-b pb-3">
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center font-bold">
+                                <i class="fa-solid fa-vault"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-800">Total Modal Kerja Usaha</h4>
+                                <p class="text-[10px] text-slate-400">Modal Awal Terkunci + Tambahan Capital</p>
+                            </div>
+                        </div>
+                        <span id="dana-val-modal" class="font-extrabold text-purple-700 text-base">Rp 0</span>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 text-[11px] bg-purple-50/50 p-2.5 rounded-xl border border-purple-100">
+                        <div>
+                            <span class="text-slate-500 block">Modal Awal (Terkunci):</span>
+                            <b id="dana-modal-awal-label" class="text-purple-900 font-bold">Rp 0</b>
+                        </div>
+                        <div>
+                            <span class="text-slate-500 block">Total Suntikan Tambahan:</span>
+                            <b id="dana-modal-tambahan-label" class="text-purple-900 font-bold">Rp 0</b>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-center pt-1">
+                        <div class="flex gap-2">
+                            <button onclick="openModalKerjaModal()" id="btn-set-modal-awal" class="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold text-[11px] shadow-xs transition flex items-center gap-1">
+                                <i class="fa-solid fa-lock text-[10px]"></i> Atur Modal Kerja Awal
+                            </button>
+                            <button onclick="openTambahModalSuntikanModal()" class="px-3 py-1.5 bg-purple-100 hover:bg-purple-200 text-purple-700 rounded-xl font-bold text-[11px] transition flex items-center gap-1">
+                                <i class="fa-solid fa-plus text-[10px]"></i> Tambah Modal (+Ket)
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Riwayat Suntikan Modal -->
+                    <div class="pt-2 border-t border-slate-100 space-y-1.5">
+                        <span class="font-semibold text-slate-700 text-[11px] block">Riwayat Suntikan Modal:</span>
+                        <div id="modal-tambahan-list" class="space-y-1 max-h-28 overflow-y-auto no-scrollbar">
+                            <!-- Diisi via JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. GAJI -->
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-2">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center font-bold">
+                                <i class="fa-solid fa-user-gear"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-800">Pos Dana Gaji</h4>
+                                <p class="text-[10px] text-slate-400">Tersedia untuk ditarik pemilik/karyawan</p>
+                            </div>
+                        </div>
+                        <span id="dana-val-gaji" class="font-extrabold text-blue-700 text-sm">Rp 0</span>
+                    </div>
+                    <div class="pt-2 flex justify-between items-center border-t border-slate-100">
+                        <span class="text-[11px] text-slate-500">Telah ditarik: <b id="dana-drawn-gaji" class="text-slate-700">Rp 0</b></span>
+                        <button onclick="openTarikModal('Gaji')" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-[11px] shadow-xs transition">
+                            Tarik Gaji
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 3. DANA CADANGAN -->
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-2">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center font-bold">
+                                <i class="fa-solid fa-shield-halved"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-800">Dana Cadangan (Darurat)</h4>
+                                <p class="text-[10px] text-slate-400">Tidak disarankan ditarik (Keamanan usaha)</p>
+                            </div>
+                        </div>
+                        <span id="dana-val-cadangan" class="font-extrabold text-amber-700 text-sm">Rp 0</span>
+                    </div>
+
+                    <!-- Status Kredit Pinjaman Internal Dana Cadangan -->
+                    <div id="box-kredit-cadangan" class="pt-2 border-t border-slate-100 space-y-1.5 hidden">
+                        <div class="flex justify-between items-center bg-amber-50 p-2 rounded-xl border border-amber-200 text-[11px]">
+                            <div>
+                                <span class="text-amber-900 font-bold block"><i class="fa-solid fa-triangle-exclamation text-amber-600 mr-1"></i>Kewajiban Pengembalian (Kredit):</span>
+                                <span class="text-slate-600">Dipakai untuk pengeluaran darurat</span>
+                            </div>
+                            <span id="val-kredit-cadangan" class="font-extrabold text-rose-600">Rp 0</span>
+                        </div>
+                        <button onclick="openPelunasanCadanganModal()" class="w-full py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-[11px] transition shadow-xs flex items-center justify-center gap-1">
+                            <i class="fa-solid fa-hand-holding-hand"></i> Pelunasan / Kembalikan Dana Cadangan
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 4. DANA PENGEMBANGAN -->
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-2">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center font-bold">
+                                <i class="fa-solid fa-chart-line"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-800">Dana Pengembangan Usaha</h4>
+                                <p class="text-[10px] text-slate-400">Untuk ekspansi / alat baru</p>
+                            </div>
+                        </div>
+                        <span id="dana-val-pengembangan" class="font-extrabold text-emerald-700 text-sm">Rp 0</span>
+                    </div>
+                    <div class="pt-2 flex justify-between items-center border-t border-slate-100">
+                        <span class="text-[11px] text-slate-500">Telah ditarik: <b id="dana-drawn-pengembangan" class="text-slate-700">Rp 0</b></span>
+                        <button onclick="openTarikModal('Pengembangan')" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-[11px] shadow-xs transition">
+                            Tarik Dana Ekspansi
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. DATABASE BAHAN BAKU -->
+        <section id="tab-bahan" class="tab-content space-y-4 hidden">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h2 class="font-bold text-slate-800">Master Bahan Baku</h2>
+                    <p class="text-xs text-slate-500">Otomatis konversi harga ke satuan terkecil</p>
+                </div>
+                <button onclick="openBahanModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-sm transition">
+                    <i class="fa-solid fa-plus"></i> Tambah Bahan
+                </button>
+            </div>
+
+            <!-- List Bahan Baku -->
+            <div id="bahan-list" class="space-y-2">
+                <!-- Data dimasukkan via JS -->
+            </div>
+        </section>
+
+        <!-- 3. KALKULATOR HPP & RESEP -->
+        <section id="tab-hpp" class="tab-content space-y-4 hidden">
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
+                <h2 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-mug-hot text-indigo-600"></i> Buat Resep & Simpan Menu POS
+                </h2>
+                
+                <div class="space-y-2 text-xs">
+                    <div>
+                        <label class="font-semibold text-slate-700 block mb-1">Nama Produk / Menu</label>
+                        <input type="text" id="hpp-nama-produk" placeholder="Contoh: Pop Ice Coklat" class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    </div>
+
+                    <!-- Pilih Bahan untuk Resep -->
+                    <div class="pt-2">
+                        <label class="font-semibold text-slate-700 block mb-1">Pilih Bahan Baku & Jumlah</label>
+                        <div class="flex gap-2">
+                            <select id="hpp-select-bahan" class="flex-1 px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white">
+                                <!-- Option dari Javascript -->
+                            </select>
+                            <input type="number" id="hpp-qty-bahan" placeholder="Qty" value="1" min="1" class="w-16 px-2 py-2 border border-slate-300 rounded-xl text-center focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                            <button onclick="tambahBahanKeResep()" class="bg-indigo-600 text-white px-3 rounded-xl hover:bg-indigo-700 transition">
+                                <i class="fa-solid fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Tabel Resep Temp -->
+                    <div class="border border-slate-100 rounded-xl overflow-hidden mt-3">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-slate-100 text-slate-600 text-[11px]">
+                                <tr>
+                                    <th class="p-2">Bahan</th>
+                                    <th class="p-2 text-center">Qty</th>
+                                    <th class="p-2 text-right">Subtotal</th>
+                                    <th class="p-2 text-center">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="resep-items-body" class="divide-y divide-slate-100">
+                                <tr>
+                                    <td colspan="4" class="p-3 text-center text-slate-400 italic">Belum ada bahan ditambahkan</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Ringkasan Hitungan HPP -->
+                    <div class="bg-indigo-50 p-3 rounded-xl border border-indigo-100 space-y-2 mt-3">
+                        <div class="flex justify-between font-bold text-indigo-900">
+                            <span>Total HPP Modal:</span>
+                            <span id="hpp-total-modal">Rp 0</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <label class="font-semibold text-slate-700 whitespace-nowrap">Rencana Harga Jual:</label>
+                            <input type="number" id="hpp-harga-jual" oninput="hitungMarginHpp()" placeholder="Rp" class="w-full px-2 py-1 border border-slate-300 rounded-lg text-right font-bold focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                        </div>
+                        <div class="flex justify-between text-xs pt-1 border-t border-indigo-200">
+                            <span class="text-slate-600">Estimasi Keuntungan/Porsi:</span>
+                            <span id="hpp-estimasi-laba" class="font-bold text-emerald-600">Rp 0 (0%)</span>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-2">
+                        <button onclick="simpanMenuKePOS()" id="btn-simpan-menu" class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-sm transition">
+                            <i class="fa-solid fa-store"></i> Simpan Ke Menu Kasir (POS)
+                        </button>
+                        <button onclick="batalEditMenu()" id="btn-batal-edit-menu" class="hidden py-2.5 px-3 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl text-xs transition">
+                            Batal
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- List Menu Terdaftar -->
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
+                <h3 class="font-bold text-slate-800 text-xs">Daftar Menu Siap Jual</h3>
+                <div id="registered-menu-list" class="space-y-2">
+                    <!-- Diisi via JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. TRANSAKSI JUAL & BELI -->
+        <section id="tab-transaksi" class="tab-content space-y-4 hidden">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h2 class="font-bold text-slate-800">Pengeluaran & Operasional</h2>
+                    <p class="text-xs text-slate-500">Catat pembelian bahan & pengeluaran kas. Pemasukan otomatis dari Kasir POS.</p>
+                </div>
+                <div>
+                    <button onclick="openTransaksiModal('Keluar')" class="bg-rose-600 hover:bg-rose-700 text-white px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1 shadow-sm transition">
+                        <i class="fa-solid fa-plus"></i> Tambah Pengeluaran
+                    </button>
+                </div>
+            </div>
+
+            <!-- List Transaksi -->
+            <div id="transaksi-list" class="space-y-2">
+                <!-- Data dimasukkan via JS -->
+            </div>
+        </section>
+
+        <!-- 5. TAB PENGATURAN TOKO & NOTA (FITUR BARU) -->
+        <section id="tab-toko" class="tab-content space-y-4 hidden">
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                <div class="flex items-center gap-2.5 border-b pb-3">
+                    <div class="w-9 h-9 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center text-lg font-bold">
+                        <i class="fa-solid fa-store"></i>
+                    </div>
+                    <div>
+                        <h2 class="font-bold text-slate-800 text-base">Pengaturan Toko & Nota</h2>
+                        <p class="text-xs text-slate-500">Sesuaikan nama toko, logo, dan identitas untuk nota penjualan</p>
+                </div>
+            </div>
+
+            <form id="form-toko" class="space-y-4 text-xs">
+                <!-- Preview Logo -->
+                <div class="flex flex-col items-center justify-center space-y-2 bg-slate-50 p-4 rounded-2xl border border-dashed border-slate-300">
+                    <div id="toko-logo-preview-container" class="w-20 h-20 rounded-2xl bg-slate-200 border border-slate-300 flex items-center justify-center overflow-hidden relative shadow-xs">
+                        <img id="toko-logo-img" src="" alt="Logo Toko" class="w-full h-full object-cover hidden">
+                        <i id="toko-logo-placeholder" class="fa-solid fa-image text-2xl text-slate-400"></i>
+                    </div>
+                    <div class="text-center">
+                        <label for="input-logo-file" class="cursor-pointer bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold px-3 py-1.5 rounded-xl border border-indigo-200 inline-block transition text-xs">
+                            <i class="fa-solid fa-upload mr-1"></i> Upload Logo Toko
+                        </label>
+                        <input type="file" id="input-logo-file" accept="image/*" onchange="previewLogoFile(event)" class="hidden">
+                        <button type="button" onclick="hapusLogoToko()" id="btn-hapus-logo" class="text-rose-500 hover:underline block text-[10px] mt-1 mx-auto hidden">Hapus Logo</button>
+                        <p class="text-[10px] text-slate-400 mt-1">Format: PNG, JPG, JPEG (Maks. 2MB)</p>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Nama Toko / Usaha</label>
+                    <input type="text" id="input-nama-toko" placeholder="KedaiUMKM Pro" required class="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Alamat Toko</label>
+                    <input type="text" id="input-alamat-toko" placeholder="Jl. Merdeka No. 123, Jakarta" class="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Nomor Telepon / WhatsApp Toko</label>
+                    <input type="text" id="input-telepon-toko" placeholder="081234567890" class="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Pesan / Catatan Kaki Nota (Footer)</label>
+                    <input type="text" id="input-footer-nota" placeholder="Terima Kasih Telah Berbelanja! Ditunggu Kedatangannya Kembali." class="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                </div>
+
+                <div class="pt-2">
+                    <button type="button" onclick="savePengaturanToko(event)" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-md transition flex items-center justify-center gap-2 text-xs">
+                        <i class="fa-solid fa-floppy-disk"></i> Simpan Pengaturan Toko
+                    </button>
+                </div>
+            </form>
+        </div>
+    </section>
+    </main>
+
+    <!-- Bottom Navigation Bar (App Feel) -->
+    <nav class="bg-white border-t border-slate-200 fixed bottom-0 left-0 right-0 z-40">
+        <div class="max-w-md mx-auto flex justify-around py-2 text-slate-500">
+            <button onclick="switchTab('pos')" id="nav-pos" class="flex flex-col items-center gap-1 text-indigo-600">
+                <i class="fa-solid fa-cash-register text-lg"></i>
+                <span class="text-[10px] font-medium">Kasir POS</span>
+            </button>
+            <button onclick="switchTab('dashboard')" id="nav-dashboard" class="flex flex-col items-center gap-1 hover:text-indigo-600">
+                <i class="fa-solid fa-chart-pie text-lg"></i>
+                <span class="text-[10px] font-medium">Beranda</span>
+            </button>
+            <button onclick="switchTab('dana')" id="nav-dana" class="flex flex-col items-center gap-1 hover:text-indigo-600">
+                <i class="fa-solid fa-wallet text-lg"></i>
+                <span class="text-[10px] font-medium">Dana</span>
+            </button>
+            <button onclick="switchTab('bahan')" id="nav-bahan" class="flex flex-col items-center gap-1 hover:text-indigo-600">
+                <i class="fa-solid fa-boxes-stacked text-lg"></i>
+                <span class="text-[10px] font-medium">Bahan</span>
+            </button>
+            <button onclick="switchTab('hpp')" id="nav-hpp" class="flex flex-col items-center gap-1 hover:text-indigo-600">
+                <i class="fa-solid fa-calculator text-lg"></i>
+                <span class="text-[10px] font-medium">Menu HPP</span>
+            </button>
+            <button onclick="switchTab('transaksi')" id="nav-transaksi" class="flex flex-col items-center gap-1 hover:text-indigo-600">
+                <i class="fa-solid fa-receipt text-lg"></i>
+                <span class="text-[10px] font-medium">Transaksi</span>
+            </button>
+            <button onclick="switchTab('toko')" id="nav-toko" class="flex flex-col items-center gap-1 hover:text-indigo-600">
+                <i class="fa-solid fa-shop text-lg"></i>
+                <span class="text-[10px] font-medium">Toko</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- MODAL: SETTING ALOKASI DANA -->
+    <div id="modal-alokasi" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-5 space-y-4 shadow-xl">
+            <div class="flex justify-between items-center border-b pb-2">
+                <h3 class="font-bold text-slate-800 text-sm">Setting Persentase Alokasi Laba</h3>
+                <button onclick="closeAlokasiModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="form-alokasi" onsubmit="saveAlokasi(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-semibold mb-1 text-slate-700">Gaji Pemilik / Karyawan (%)</label>
+                    <input type="number" id="input-pct-gaji" min="0" max="100" required class="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block font-semibold mb-1 text-slate-700">Dana Cadangan Darurat (%)</label>
+                    <input type="number" id="input-pct-cadangan" min="0" max="100" required class="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block font-semibold mb-1 text-slate-700">Pengembangan Usaha (%)</label>
+                    <input type="number" id="input-pct-pengembangan" min="0" max="100" required class="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                </div>
+                <p id="alokasi-error" class="text-[10px] text-rose-500 hidden font-semibold">* Total alokasi harus persis 100%!</p>
+                <div class="pt-2 flex justify-end gap-2">
+                    <button type="button" onclick="closeAlokasiModal()" class="px-4 py-2 border rounded-xl text-slate-600 hover:bg-slate-50">Batal</button>
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 font-semibold">Simpan Alokasi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: LOCK & SET MODAL KERJA AWAL -->
+    <div id="modal-modal-kerja" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-5 space-y-4 shadow-xl">
+            <div class="flex justify-between items-center border-b pb-2">
+                <h3 class="font-bold text-slate-800 text-sm flex items-center gap-1.5">
+                    <i class="fa-solid fa-lock text-purple-600"></i> Atur Modal Kerja Awal (Terkunci)
+                </h3>
+                <button onclick="closeModalKerjaModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="form-modal-kerja" onsubmit="saveModalKerja(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-semibold mb-1 text-slate-700">Nominal Modal Kerja Awal (Rp)</label>
+                    <input type="number" id="input-nominal-modal-kerja" placeholder="Masukkan dana modal awal" required class="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:outline-none">
+                </div>
+                <p class="text-[10px] text-slate-500 leading-relaxed bg-amber-50 p-2 rounded-lg border border-amber-200">
+                    <i class="fa-solid fa-triangle-exclamation text-amber-600 mr-1"></i>
+                    <b>Catatan:</b> Modal Kerja Awal ini merupakan fondasi dasar usaha Anda. Mengubah nilai ini akan memperbarui patokan alokasi keuangan secara permanen.
+                </p>
+                <div class="pt-2 flex justify-end gap-2">
+                    <button type="button" onclick="closeModalKerjaModal()" class="px-4 py-2 border rounded-xl text-slate-600 hover:bg-slate-50">Batal</button>
+                    <button type="submit" class="px-4 py-2 bg-purple-600 text-white rounded-xl hover:bg-purple-700 font-semibold flex items-center gap-1">
+                        <i class="fa-solid fa-lock text-xs"></i> Simpan & Kunci Modal
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: TAMBAHAN SUNTIKAN MODAL + KETERANGAN -->
+    <div id="modal-suntikan-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-5 space-y-4 shadow-xl">
+            <div class="flex justify-between items-center border-b pb-2">
+                <h3 class="font-bold text-slate-800 text-sm flex items-center gap-1.5">
+                    <i class="fa-solid fa-hand-holding-dollar text-purple-600"></i> Tambah Suntikan Modal Usaha
+                </h3>
+                <button onclick="closeTambahModalSuntikanModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="form-suntikan-modal" onsubmit="saveSuntikanModal(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-semibold mb-1 text-slate-700">Keterangan / Sumber Modal Tambahan</label>
+                    <input type="text" id="input-ket-suntikan" placeholder="Contoh: Tambahan Modal Mitra A / Pinjaman Usaha" required class="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block font-semibold mb-1 text-slate-700">Nominal Tambahan Modal (Rp)</label>
+                    <input type="number" id="input-nominal-suntikan" placeholder="1000000" required class="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:outline-none">
+                </div>
+                <div class="pt-2 flex justify-end gap-2">
+                    <button type="button" onclick="closeTambahModalSuntikanModal()" class="px-4 py-2 border rounded-xl text-slate-600 hover:bg-slate-50">Batal</button>
+                    <button type="submit" class="px-4 py-2 bg-purple-600 text-white rounded-xl hover:bg-purple-700 font-semibold">Simpan Suntikan Modal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: TAMBAH / EDIT BAHAN BAKU -->
+    <div id="modal-bahan" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-5 space-y-4 shadow-xl">
+            <div class="flex justify-between items-center border-b pb-2">
+                <h3 id="modal-bahan-title" class="font-bold text-slate-800 text-sm">Tambah Bahan Baku Baru</h3>
+                <button onclick="closeBahanModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="form-bahan" onsubmit="saveBahan(event)" class="space-y-3 text-xs">
+                <input type="hidden" id="input-id-bahan">
+                <div>
+                    <label class="block font-semibold mb-1 text-slate-700">Nama Bahan Baku</label>
+                    <input type="text" id="input-nama-bahan" placeholder="Contoh: Gula Pasir / Pop Ice" required class="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block font-semibold mb-1 text-slate-700">Harga Beli Total (Rp)</label>
+                    <input type="number" id="input-harga-beli" placeholder="18000" required class="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block font-semibold mb-1 text-slate-700">Jumlah Kemasan/Isi</label>
+                        <input type="number" id="input-isi-pack" placeholder="1000" required class="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-semibold mb-1 text-slate-700">Satuan Takaran</label>
+                        <select id="input-satuan-bahan" class="w-full px-3 py-2 border rounded-xl bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                            <option value="pcs">pcs / saset</option>
+                            <option value="gram">gram (gr)</option>
+                            <option value="ml">miliLiter (ml)</option>
+                        </select>
+                    </div>
+                </div>
+                <p class="text-[10px] text-slate-400 italic">*Contoh: Gula 1kg = 1000 gram seharga Rp 18.000 (Pilih Satuan: gram)</p>
+                <div class="pt-2 flex justify-end gap-2">
+                    <button type="button" onclick="closeBahanModal()" class="px-4 py-2 border rounded-xl text-slate-600 hover:bg-slate-50">Batal</button>
+                    <button type="submit" id="btn-save-bahan" class="px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 font-semibold">Simpan Bahan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: TARIK DANA -->
+    <div id="modal-tarik-dana" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-5 space-y-4 shadow-xl">
+            <div class="flex justify-between items-center border-b pb-2">
+                <h3 id="modal-tarik-title" class="font-bold text-slate-800 text-sm">Penarikan Dana</h3>
+                <button onclick="closeTarikModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <!-- INFORMASI SALDO TERSEDIA -->
+            <div class="bg-indigo-50 border border-indigo-100 p-3 rounded-xl flex justify-between items-center text-xs">
+                <span class="text-indigo-700 font-semibold flex items-center gap-1.5">
+                    <i class="fa-solid fa-wallet"></i> Saldo Tersedia:
+                </span>
+                <span id="modal-tarik-saldo-tersedia" class="font-extrabold text-indigo-900 text-sm">Rp 0</span>
+            </div>
+
+            <form id="form-tarik-dana" onsubmit="savePenarikanDana(event)" class="space-y-3 text-xs">
+                <input type="hidden" id="input-pos-tarik">
+                
+                <!-- Opsi Penerima Dana Gaji / Penarikan -->
+                <div id="box-pilihan-penerima" class="space-y-2">
+                    <label class="block font-semibold text-slate-700">Penerima Dana Gaji</label>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <label class="flex items-center gap-2 p-2 border rounded-xl cursor-pointer bg-slate-50 hover:bg-slate-100 has-[:checked]:border-indigo-600 has-[:checked]:bg-indigo-50/50">
+                            <input type="radio" name="penerima_type" value="Pemilik Usaha" checked onchange="togglePenerimaInput(this.value)" class="accent-indigo-600">
+                            <span class="font-semibold text-slate-700">Pemilik Usaha</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-2 border rounded-xl cursor-pointer bg-slate-50 hover:bg-slate-100 has-[:checked]:border-indigo-600 has-[:checked]:bg-indigo-50/50">
+                            <input type="radio" name="penerima_type" value="Karyawan" onchange="togglePenerimaInput(this.value)" class="accent-indigo-600">
+                            <span class="font-semibold text-slate-700">Karyawan / Staf</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div id="box-input-nama-karyawan" class="hidden">
+                    <label class="block font-semibold mb-1 text-slate-700">Nama Karyawan / Staf</label>
+                    <input type="text" id="input-penerima-tarik" placeholder="Contoh: Budi / Siti" class="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                </div>
+
+                <div>
+                    <label class="block font-semibold mb-1 text-slate-700">Keterangan Penarikan</label>
+                    <input type="text" id="input-ket-tarik" placeholder="Contoh: Gaji Minggu Pertama / Bonus Omzet" required class="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block font-semibold mb-1 text-slate-700">Nominal Penarikan (Rp)</label>
+                    <input type="number" id="input-nominal-tarik" placeholder="50000" required class="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                </div>
+                <div class="pt-2 flex justify-end gap-2">
+                    <button type="button" onclick="closeTarikModal()" class="px-4 py-2 border rounded-xl text-slate-600 hover:bg-slate-50">Batal</button>
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 font-semibold">Tarik Dana</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: LAPORAN & EXPORT PDF/WA -->
+    <!-- MODAL: TRANSAKSI (BELI/PENGELUARAN DENGAN SUMBER DANA) -->
+    <div id="modal-transaksi" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-5 space-y-4 shadow-xl">
+            <div class="flex justify-between items-center border-b pb-2">
+                <h3 id="modal-transaksi-title" class="font-bold text-slate-800 text-sm">Tambah Pengeluaran</h3>
+                <button onclick="closeTransaksiModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="form-transaksi" onsubmit="saveTransaksi(event)" class="space-y-3 text-xs">
+                <input type="hidden" id="input-jenis-transaksi">
+                <div>
+                    <label class="block font-semibold mb-1 text-slate-700">Keterangan / Item Pengeluaran</label>
+                    <input type="text" id="input-ket-transaksi" placeholder="Contoh: Pembelian Stok Bahan / Perbaikan Alat" required class="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block font-semibold mb-1 text-slate-700">Nominal Total (Rp)</label>
+                    <input type="number" id="input-nominal-transaksi" placeholder="50000" required class="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block font-semibold mb-1 text-slate-700">Sumber Dana</label>
+                    <select id="input-sumber-dana" class="w-full px-3 py-2 border rounded-xl bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                        <option value="Modal Kerja">Modal Kerja / Putaran Stok</option>
+                        <option value="Dana Cadangan">Dana Cadangan (Kredit / Pinjaman Internal)</option>
+                    </select>
+                </div>
+                <div id="info-kredit-cadangan" class="p-2.5 bg-amber-50 border border-amber-200 rounded-xl text-[10px] text-amber-900 hidden">
+                    <i class="fa-solid fa-circle-info text-amber-600 mr-1"></i>
+                    Pengeluaran ini akan dicatat sebagai <b>Pinjaman Internal</b> dari Dana Cadangan dan wajib dikembalikan ketika kas operasional telah tercukupi.
+                </div>
+                <div class="pt-2 flex justify-end gap-2">
+                    <button type="button" onclick="closeTransaksiModal()" class="px-4 py-2 border rounded-xl text-slate-600 hover:bg-slate-50">Batal</button>
+                    <button type="submit" class="px-4 py-2 bg-rose-600 text-white rounded-xl hover:bg-rose-700 font-semibold">Simpan Pengeluaran</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: TARIK DANA -->
+    <div id="modal-tarik-dana" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-5 space-y-4 shadow-xl">
+            <div class="flex justify-between items-center border-b pb-2">
+                <h3 id="modal-tarik-title" class="font-bold text-slate-800 text-sm">Penarikan Dana</h3>
+                <button onclick="closeTarikModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <!-- INFORMASI SALDO TERSEDIA -->
+            <div class="bg-indigo-50 border border-indigo-100 p-3 rounded-xl flex justify-between items-center text-xs">
+                <span class="text-indigo-700 font-semibold flex items-center gap-1.5">
+                    <i class="fa-solid fa-wallet"></i> Saldo Tersedia:
+                </span>
+                <span id="modal-tarik-saldo-tersedia" class="font-extrabold text-indigo-900 text-sm">Rp 0</span>
+            </div>
+
+            <form id="form-tarik-dana" onsubmit="savePenarikanDana(event)" class="space-y-3 text-xs">
+                <input type="hidden" id="input-pos-tarik">
+                <div>
+                    <label class="block font-semibold mb-1 text-slate-700">Nama Penerima (Gaji / Penarik)</label>
+                    <input type="text" id="input-penerima-tarik" placeholder="Contoh: Budi / Pemilik Usaha" class="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block font-semibold mb-1 text-slate-700">Keterangan Penarikan</label>
+                    <input type="text" id="input-ket-tarik" placeholder="Contoh: Ambil Gaji Pekan 1" required class="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block font-semibold mb-1 text-slate-700">Nominal Penarikan (Rp)</label>
+                    <input type="number" id="input-nominal-tarik" placeholder="50000" required class="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                </div>
+                <div class="pt-2 flex justify-end gap-2">
+                    <button type="button" onclick="closeTarikModal()" class="px-4 py-2 border rounded-xl text-slate-600 hover:bg-slate-50">Batal</button>
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 font-semibold">Tarik Dana</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: PELUNASAN DANA CADANGAN -->
+    <div id="modal-pelunasan-cadangan" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-5 space-y-4 shadow-xl">
+            <div class="flex justify-between items-center border-b pb-2">
+                <h3 class="font-bold text-slate-800 text-sm">Pengembalian / Pelunasan Dana Cadangan</h3>
+                <button onclick="closePelunasanCadanganModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="form-pelunasan-cadangan" onsubmit="savePelunasanCadangan(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-semibold mb-1 text-slate-700">Nominal Setoran Pengembalian (Rp)</label>
+                    <input type="number" id="input-nominal-pelunasan" placeholder="Masukkan jumlah yang dikembalikan" required class="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                </div>
+                <p class="text-[10px] text-slate-500 italic">*Setoran ini akan mengembalikan keutuhan saldo Dana Cadangan Darurat dari kas usaha Anda.</p>
+                <div class="pt-2 flex justify-end gap-2">
+                    <button type="button" onclick="closePelunasanCadanganModal()" class="px-4 py-2 border rounded-xl text-slate-600 hover:bg-slate-50">Batal</button>
+                    <button type="submit" class="px-4 py-2 bg-amber-600 text-white rounded-xl hover:bg-amber-700 font-semibold">Kembalikan Dana Cadangan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: LAPORAN & EXPORT PDF/WA -->
+    <div id="modal-laporan" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-5 space-y-4 shadow-xl">
+            <div class="flex justify-between items-center border-b pb-2">
+                <h3 class="font-bold text-slate-800 text-sm flex items-center gap-1.5">
+                    <i class="fa-solid fa-file-invoice font-bold text-indigo-600"></i> Rekap Laporan Keuangan
+                </h3>
+                <button onclick="closeLaporanModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <!-- Printable Laporan Area -->
+            <div id="laporan-print-area" class="bg-white p-4 border border-slate-300 rounded-xl font-mono text-slate-800 text-xs space-y-3 shadow-inner">
+                <div class="text-center border-b border-dashed border-slate-300 pb-3 space-y-1">
+                    <h2 id="lap-nama-toko" class="font-black text-sm uppercase tracking-wide">KedaiUMKM Pro</h2>
+                    <p id="lap-alamat-toko" class="text-[10px] text-slate-500 leading-tight">Jl. Merdeka No. 123</p>
+                    <div class="text-[10px] bg-indigo-50 text-indigo-800 font-bold py-1 px-2 rounded-md inline-block mt-1">LAPORAN KEUANGAN UMKM</div>
+                    <div class="text-[9px] text-slate-400 pt-1" id="lap-tgl">Dicetak: -</div>
+                </div>
+
+                <div class="space-y-1.5 text-[11px] border-b border-dashed border-slate-300 pb-3">
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">Total Pemasukan (POS):</span>
+                        <span id="lap-pemasukan" class="font-bold text-emerald-600">Rp 0</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">Total Pengeluaran:</span>
+                        <span id="lap-pengeluaran" class="font-bold text-rose-600">Rp 0</span>
+                    </div>
+                    <div class="flex justify-between pt-1 border-t border-slate-200 font-bold text-xs">
+                        <span>ESTIMASI LABA BERSIH:</span>
+                        <span id="lap-laba-bersih" class="text-indigo-700">Rp 0</span>
+                    </div>
+                </div>
+
+                <div class="space-y-1 text-[11px]">
+                    <div class="font-bold text-slate-700 border-b pb-1">Pembagian Alokasi Dana:</div>
+                    <div class="flex justify-between text-[10px]">
+                        <span>- Pos Dana Gaji:</span>
+                        <span id="lap-pos-gaji" class="font-bold">Rp 0</span>
+                    </div>
+                    <div class="flex justify-between text-[10px]">
+                        <span>- Dana Cadangan:</span>
+                        <span id="lap-pos-cadangan" class="font-bold">Rp 0</span>
+                    </div>
+                    <div class="flex justify-between text-[10px]">
+                        <span>- Pengembangan Usaha:</span>
+                        <span id="lap-pos-pengembangan" class="font-bold">Rp 0</span>
+                    </div>
+                </div>
+
+                <div class="text-center pt-2 border-t border-dashed border-slate-300 text-[10px] text-slate-500 italic">
+                    <p>Laporan Keuangan Otomatis KedaiUMKM Pro</p>
+                </div>
+            </div>
+
+            <div class="flex gap-2 text-xs">
+                <button onclick="sendLaporanWA()" class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-xs transition flex items-center justify-center gap-1.5">
+                    <i class="fa-brands fa-whatsapp text-sm"></i> Kirim WA
+                </button>
+                <button onclick="printLaporanPDF()" class="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-xs transition flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-file-pdf"></i> Download PDF
+                </button>
+                <button onclick="closeLaporanModal()" class="py-2.5 px-3 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl transition">
+                    Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: SLIP / NOTA GAJI -->
+    <div id="modal-slip-gaji" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-5 space-y-4 shadow-xl">
+            <div class="flex justify-between items-center border-b pb-2">
+                <h3 class="font-bold text-slate-800 text-sm flex items-center gap-1.5">
+                    <i class="fa-solid fa-file-invoice-dollar text-blue-600"></i> Slip / Nota Penggajian
+                </h3>
+                <button onclick="closeSlipGajiModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <!-- TAMPILAN SLIP GAJI -->
+            <div id="slip-gaji-print-area" class="bg-white p-4 border border-slate-300 rounded-xl font-mono text-slate-800 text-xs space-y-3 shadow-inner">
+                <!-- Header -->
+                <div class="text-center border-b border-dashed border-slate-300 pb-3 space-y-1">
+                    <h2 id="slip-nama-toko" class="font-black text-sm uppercase tracking-wide">KedaiUMKM Pro</h2>
+                    <p id="slip-alamat-toko" class="text-[10px] text-slate-500 leading-tight">Jl. Merdeka No. 123</p>
+                    <div class="text-[10px] bg-blue-50 text-blue-800 font-bold py-1 px-2 rounded-md inline-block mt-1">SLIP GAJI & PENARIKAN DANA</div>
+                    <div class="text-[9px] text-slate-400 pt-1" id="slip-tgl">Waktu: -</div>
+                </div>
+
+                <!-- Detail Penggajian -->
+                <div class="space-y-2 text-[11px] border-b border-dashed border-slate-300 pb-3">
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">Penerima:</span>
+                        <span id="slip-penerima" class="font-bold text-slate-800">-</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">Keterangan:</span>
+                        <span id="slip-keterangan" class="font-bold text-slate-800 text-right">-</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">Pos Dana:</span>
+                        <span class="font-bold text-blue-600">Pos Dana Gaji</span>
+                    </div>
+                </div>
+
+                <!-- Total Diterima -->
+                <div class="space-y-1 text-xs font-bold pt-1">
+                    <div class="flex justify-between text-sm">
+                        <span>TOTAL GAJI DITERIMA:</span>
+                        <span id="slip-total-gaji" class="text-blue-700">Rp 0</span>
+                    </div>
+                </div>
+
+                <!-- Footer Slip -->
+                <div class="text-center pt-2 border-t border-dashed border-slate-300 text-[10px] text-slate-500 italic">
+                    <p id="slip-footer-text">Dokumen Bukti Penarikan Gaji Sah KedaiUMKM Pro</p>
+                </div>
+            </div>
+
+            <!-- Modal Action Buttons -->
+            <div class="flex gap-2 text-xs">
+                <button onclick="sendSlipGajiWA()" class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-xs transition flex items-center justify-center gap-1.5">
+                    <i class="fa-brands fa-whatsapp text-sm"></i> Kirim WA
+                </button>
+                <button onclick="printSlipGajiPDF()" class="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-xs transition flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-file-pdf"></i> Download PDF
+                </button>
+                <button onclick="closeSlipGajiModal()" class="py-2.5 px-3 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl transition">
+                    Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: NOTA / STRUK PENJUALAN -->
+    <div id="modal-nota" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-5 space-y-4 shadow-xl">
+            <div class="flex justify-between items-center border-b pb-2">
+                <h3 class="font-bold text-slate-800 text-sm flex items-center gap-1.5">
+                    <i class="fa-solid fa-receipt text-indigo-600"></i> Struk / Nota Penjualan
+                </h3>
+                <button onclick="closeNotaModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <!-- AREA STRUK THERMAL -->
+            <div id="nota-print-area" class="bg-white p-4 border border-slate-300 rounded-xl font-mono text-slate-800 text-xs space-y-3 shadow-inner">
+                <!-- Header Nota -->
+                <div class="text-center border-b border-dashed border-slate-300 pb-3 space-y-1">
+                    <div id="nota-logo-container" class="flex justify-center mb-1 hidden">
+                        <img id="nota-toko-logo" src="" alt="Logo" class="w-12 h-12 object-cover rounded-lg">
+                    </div>
+                    <h2 id="nota-nama-toko" class="font-black text-sm uppercase tracking-wide">KedaiUMKM Pro</h2>
+                    <p id="nota-alamat-toko" class="text-[10px] text-slate-500 leading-tight">Jl. Merdeka No. 123</p>
+                    <p id="nota-telp-toko" class="text-[10px] text-slate-500">Telp/WA: 081234567890</p>
+                    <div class="text-[9px] text-slate-400 pt-1" id="nota-tgl">Waktu: -</div>
+                </div>
+
+                <!-- Items List -->
+                <div id="nota-items-list" class="space-y-1.5 text-[11px] border-b border-dashed border-slate-300 pb-3">
+                    <!-- Diisi via JS -->
+                </div>
+
+                <!-- Ringkasan Total -->
+                <div class="space-y-1 text-xs font-bold">
+                    <div class="flex justify-between text-sm pt-1">
+                        <span>TOTAL BAYAR:</span>
+                        <span id="nota-total-bayar" class="text-indigo-600">Rp 0</span>
+                    </div>
+                </div>
+
+                <!-- Footer Nota -->
+                <div class="text-center pt-2 border-t border-dashed border-slate-300 text-[10px] text-slate-500 italic">
+                    <p id="nota-footer-text">Terima Kasih Telah Berbelanja!</p>
+                </div>
+            </div>
+
+            <!-- Modal Action Buttons -->
+            <div class="flex gap-2 text-xs">
+                <button onclick="sendNotaWA()" class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-xs transition flex items-center justify-center gap-1.5">
+                    <i class="fa-brands fa-whatsapp text-sm"></i> Kirim WA
+                </button>
+                <button onclick="printNotaPDF()" class="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-xs transition flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-file-pdf"></i> Download PDF
+                </button>
+                <button onclick="closeNotaModal()" class="py-2.5 px-3 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl transition">
+                    Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        let currentSlipGajiObj = null;
+
+        const defaultBahan = [
+            { id: '1', nama: 'Pop Ice Coklat (Renceng)', hargaBeli: 12000, isiPack: 10, satuan: 'pcs' },
+            { id: '2', nama: 'Gula Pasir (1 kg)', hargaBeli: 18000, isiPack: 1000, satuan: 'gram' },
+            { id: '3', nama: 'Plastik Es Gelas', hargaBeli: 10000, isiPack: 50, satuan: 'pcs' },
+            { id: '4', nama: 'Sedotan Steril', hargaBeli: 10000, isiPack: 50, satuan: 'pcs' }
+        ];
+
+        const defaultMenuPOS = [
+            { id: 'm1', nama: 'Pop Ice Coklat Standard', hpp: 1600, hargaJual: 5000 },
+            { id: 'm2', nama: 'Es Capuccino Manis Gula', hpp: 2360, hargaJual: 6000 }
+        ];
+
+        const defaultAlokasi = {
+            gaji: 50,
+            cadangan: 30,
+            pengembangan: 20
+        };
+
+        const defaultTransaksi = [
+            { id: 't1', jenis: 'Masuk', keterangan: 'Penjualan POS (10 porsi)', nominal: 50000, tanggal: new Date().toLocaleDateString('id-ID') },
+            { id: 't2', jenis: 'Keluar', keterangan: 'Beli Stok Gula Pasir & Pop Ice', nominal: 30000, tanggal: new Date().toLocaleDateString('id-ID') }
+        ];
+
+        const defaultToko = {
+            nama: 'KedaiUMKM Pro',
+            alamat: 'Jl. Merdeka No. 123',
+            telepon: '081234567890',
+            footer: 'Terima Kasih Telah Berbelanja! Ditunggu Kedatangannya Kembali.',
+            logo: ''
+        };
+
+        const defaultPenarikan = []; // Log penarikan dana
+
+        // State Application
+        let dbBahan = JSON.parse(localStorage.getItem('umkm_bahan')) || defaultBahan;
+        let dbMenuPOS = JSON.parse(localStorage.getItem('umkm_menu_pos')) || defaultMenuPOS;
+        let dbAlokasi = JSON.parse(localStorage.getItem('umkm_alokasi')) || defaultAlokasi;
+        let dbTransaksi = JSON.parse(localStorage.getItem('umkm_transaksi')) || defaultTransaksi;
+        let dbPenarikan = JSON.parse(localStorage.getItem('umkm_penarikan')) || defaultPenarikan;
+        let dbPelunasanCadangan = JSON.parse(localStorage.getItem('umkm_pelunasan_cadangan')) || [];
+        let dbToko = JSON.parse(localStorage.getItem('umkm_toko')) || defaultToko;
+        let modalKerjaAwal = parseFloat(localStorage.getItem('umkm_modal_awal')) || 0;
+        let dbSuntikanModal = JSON.parse(localStorage.getItem('umkm_suntikan_modal')) || [];
+        let currentResep = [];
+        let posCart = [];
+        let editingMenuId = null;
+        let currentCheckoutNota = null;
+
+        // Listener Opsi Sumber Dana
+        document.addEventListener('DOMContentLoaded', function() {
+            const selectSumber = document.getElementById('input-sumber-dana');
+            if (selectSumber) {
+                selectSumber.addEventListener('change', function() {
+                    const info = document.getElementById('info-kredit-cadangan');
+                    if (this.value === 'Dana Cadangan') {
+                        info.classList.remove('hidden');
+                    } else {
+                        info.classList.add('hidden');
+                    }
+                });
+            }
+        });
+
+        // Helper Format Rupiah
+        function formatRp(val) {
+            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(val);
+        }
+
+        // Window Load Initializer
+        window.onload = function() {
+            renderBahanList();
+            renderSelectBahanResep();
+            renderDashboard();
+            renderTransaksiList();
+            renderPOSMenu();
+            renderRegisteredMenu();
+            loadPengaturanTokoForm();
+            switchTab('pos');
+
+            // Attach event listener for form submission as well
+            const formToko = document.getElementById('form-toko');
+            if (formToko) {
+                formToko.addEventListener('submit', savePengaturanToko);
+            }
+        };
+
+        // --- NAVIGATION LOGIC ---
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+
+            // Reset tab styles
+            ['pos', 'dashboard', 'dana', 'bahan', 'hpp', 'transaksi', 'toko'].forEach(t => {
+                const btn = document.getElementById(`tab-${t}-btn`);
+                const nav = document.getElementById(`nav-${t}`);
+                if (btn && nav) {
+                    if (t === tabId) {
+                        btn.className = "flex-1 py-2.5 px-3 rounded-xl transition bg-indigo-600 text-white font-bold shadow-sm flex items-center justify-center gap-1.5 whitespace-nowrap";
+                        nav.className = "flex flex-col items-center gap-1 text-indigo-600 font-bold";
+                    } else {
+                        btn.className = "flex-1 py-2.5 px-3 rounded-xl transition text-slate-600 hover:bg-slate-300 flex items-center justify-center gap-1.5 whitespace-nowrap";
+                        nav.className = "flex flex-col items-center gap-1 text-slate-500 hover:text-indigo-600";
+                    }
+                }
+            });
+        }
+
+        // --- PENGATURAN TOKO & LOGO LOGIC ---
+        function loadPengaturanTokoForm() {
+            const elNama = document.getElementById('input-nama-toko');
+            const elAlamat = document.getElementById('input-alamat-toko');
+            const elTelp = document.getElementById('input-telepon-toko');
+            const elFooter = document.getElementById('input-footer-nota');
+
+            if (elNama) elNama.value = dbToko.nama || '';
+            if (elAlamat) elAlamat.value = dbToko.alamat || '';
+            if (elTelp) elTelp.value = dbToko.telepon || '';
+            if (elFooter) elFooter.value = dbToko.footer || '';
+
+            renderLogoPreview(dbToko.logo);
+        }
+
+        function previewLogoFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (file.size > 2 * 1024 * 1024) {
+                alert("Ukuran file logo terlalu besar (maksimal 2MB)");
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const base64Image = e.target.result;
+                dbToko.logo = base64Image;
+                renderLogoPreview(base64Image);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function renderLogoPreview(logoSrc) {
+            const imgEl = document.getElementById('toko-logo-img');
+            const placeholder = document.getElementById('toko-logo-placeholder');
+            const btnHapus = document.getElementById('btn-hapus-logo');
+
+            if (logoSrc) {
+                if (imgEl) {
+                    imgEl.src = logoSrc;
+                    imgEl.classList.remove('hidden');
+                }
+                if (placeholder) placeholder.classList.add('hidden');
+                if (btnHapus) btnHapus.classList.remove('hidden');
+            } else {
+                if (imgEl) {
+                    imgEl.src = '';
+                    imgEl.classList.add('hidden');
+                }
+                if (placeholder) placeholder.classList.remove('hidden');
+                if (btnHapus) btnHapus.classList.add('hidden');
+            }
+        }
+
+        function hapusLogoToko() {
+            dbToko.logo = '';
+            const inputLogo = document.getElementById('input-logo-file');
+            if (inputLogo) inputLogo.value = '';
+            renderLogoPreview('');
+        }
+
+        function savePengaturanToko(e) {
+            if (e) e.preventDefault();
+            
+            const elNama = document.getElementById('input-nama-toko');
+            const elAlamat = document.getElementById('input-alamat-toko');
+            const elTelp = document.getElementById('input-telepon-toko');
+            const elFooter = document.getElementById('input-footer-nota');
+
+            if (!elNama) {
+                alert("Elemen formulir tidak ditemukan!");
+                return;
+            }
+
+            const nama = elNama.value.trim();
+            const alamat = elAlamat ? elAlamat.value.trim() : '';
+            const telepon = elTelp ? elTelp.value.trim() : '';
+            const footer = elFooter ? elFooter.value.trim() : '';
+
+            dbToko.nama = nama || 'KedaiUMKM Pro';
+            dbToko.alamat = alamat;
+            dbToko.telepon = telepon;
+            dbToko.footer = footer || 'Terima Kasih Telah Berbelanja!';
+
+            localStorage.setItem('umkm_toko', JSON.stringify(dbToko));
+            
+            // Perbarui header dan nota
+            document.querySelectorAll('#nota-nama-toko').forEach(el => el.innerText = dbToko.nama);
+            
+            alert("Pengaturan Toko & Logo Nota berhasil disimpan!");
+        }
+
+        // --- DASHBOARD & DANA CALCULATION LOGIC ---
+        function calculateFinancials() {
+            const totalMasuk = dbTransaksi.filter(t => t.jenis === 'Masuk').reduce((sum, t) => sum + t.nominal, 0);
+            const totalKeluar = dbTransaksi.filter(t => t.jenis === 'Keluar').reduce((sum, t) => sum + t.nominal, 0);
+            const labaBersih = Math.max(0, totalMasuk - totalKeluar);
+
+            const totalGajiAlokasi = (labaBersih * dbAlokasi.gaji) / 100;
+            const totalCadanganAlokasi = (labaBersih * dbAlokasi.cadangan) / 100;
+            const totalPengembanganAlokasi = (labaBersih * dbAlokasi.pengembangan) / 100;
+
+            const drawnGaji = dbPenarikan.filter(p => p.pos === 'Gaji').reduce((sum, p) => sum + p.nominal, 0);
+            const drawnPengembangan = dbPenarikan.filter(p => p.pos === 'Pengembangan').reduce((sum, p) => sum + p.nominal, 0);
+
+            const totalSuntikan = dbSuntikanModal.reduce((sum, s) => sum + s.nominal, 0);
+            const totalModal = modalKerjaAwal + totalSuntikan;
+
+            const totalKreditCadangan = dbTransaksi
+                .filter(t => t.jenis === 'Keluar' && t.sumberDana === 'Dana Cadangan')
+                .reduce((sum, t) => sum + t.nominal, 0);
+
+            const totalPelunasanCadangan = dbPelunasanCadangan.reduce((sum, p) => sum + p.nominal, 0);
+
+            const sisaGaji = Math.max(0, totalGajiAlokasi - drawnGaji);
+            const sisaPengembangan = Math.max(0, totalPengembanganAlokasi - drawnPengembangan);
+            const netKreditCadangan = Math.max(0, totalKreditCadangan - totalPelunasanCadangan);
+            const sisaCadangan = Math.max(0, (totalCadanganAlokasi + totalPelunasanCadangan) - totalKreditCadangan);
+
+            return {
+                totalMasuk,
+                totalKeluar,
+                labaBersih,
+                totalGajiAlokasi,
+                totalCadanganAlokasi,
+                totalPengembanganAlokasi,
+                drawnGaji,
+                drawnPengembangan,
+                totalModal,
+                totalSuntikan,
+                netKreditCadangan,
+                sisaGaji,
+                sisaCadangan,
+                sisaPengembangan,
+                totalDapatDitarik: sisaGaji + sisaPengembangan
+            };
+        }
+
+        function renderDashboard() {
+            const fin = calculateFinancials();
+
+            document.getElementById('dash-laba-bersih').innerText = formatRp(fin.labaBersih);
+            document.getElementById('dash-pemasukan').innerText = formatRp(fin.totalMasuk);
+            document.getElementById('dash-pengeluaran').innerText = formatRp(fin.totalKeluar);
+            document.getElementById('dash-siap-ditarik').innerText = formatRp(fin.totalDapatDitarik);
+
+            document.getElementById('pct-gaji-label').innerText = dbAlokasi.gaji;
+            document.getElementById('pct-cadangan-label').innerText = dbAlokasi.cadangan;
+            document.getElementById('pct-pengembangan-label').innerText = dbAlokasi.pengembangan;
+
+            document.getElementById('val-alokasi-gaji').innerText = formatRp(fin.totalGajiAlokasi);
+            document.getElementById('val-alokasi-cadangan').innerText = formatRp(fin.totalCadanganAlokasi);
+            document.getElementById('val-alokasi-pengembangan').innerText = formatRp(fin.totalPengembanganAlokasi);
+
+            // Tab Dana Update
+            document.getElementById('dana-val-modal').innerText = formatRp(fin.totalModal);
+            document.getElementById('dana-modal-awal-label').innerText = formatRp(modalKerjaAwal);
+            document.getElementById('dana-modal-tambahan-label').innerText = formatRp(fin.totalSuntikan);
+
+            const btnSetModal = document.getElementById('btn-set-modal-awal');
+            if (modalKerjaAwal === 0) {
+                btnSetModal.innerHTML = `<i class="fa-solid fa-lock text-[10px]"></i> Atur Modal Kerja Awal`;
+                btnSetModal.className = "px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold text-[11px] shadow-xs transition flex items-center gap-1 animate-pulse";
+            } else {
+                btnSetModal.innerHTML = `<i class="fa-solid fa-lock text-[10px]"></i> Edit Modal Awal`;
+                btnSetModal.className = "px-3 py-1.5 bg-purple-100 hover:bg-purple-200 text-purple-700 rounded-xl font-bold text-[11px] transition flex items-center gap-1";
+            }
+
+            document.getElementById('dana-val-gaji').innerText = formatRp(fin.sisaGaji);
+            document.getElementById('dana-drawn-gaji').innerText = formatRp(fin.drawnGaji);
+
+            document.getElementById('dana-val-cadangan').innerText = formatRp(fin.sisaCadangan);
+
+            document.getElementById('dana-val-pengembangan').innerText = formatRp(fin.sisaPengembangan);
+            document.getElementById('dana-drawn-pengembangan').innerText = formatRp(fin.drawnPengembangan);
+
+            // Box Kredit Cadangan
+            const boxKredit = document.getElementById('box-kredit-cadangan');
+            if (fin.netKreditCadangan > 0) {
+                boxKredit.classList.remove('hidden');
+                document.getElementById('val-kredit-cadangan').innerText = formatRp(fin.netKreditCadangan);
+            } else {
+                boxKredit.classList.add('hidden');
+            }
+
+            // Render Riwayat Suntikan Modal
+            const listSuntikan = document.getElementById('modal-tambahan-list');
+            if (dbSuntikanModal.length === 0) {
+                listSuntikan.innerHTML = `<div class="text-[10px] text-slate-400 italic">Belum ada tambahan modal</div>`;
+            } else {
+                listSuntikan.innerHTML = '';
+                dbSuntikanModal.slice().reverse().forEach(s => {
+                    listSuntikan.innerHTML += `
+                        <div class="flex justify-between items-center bg-slate-50 p-1.5 rounded-lg border border-slate-100 text-[10px]">
+                            <span class="text-slate-700 font-medium">${s.keterangan} (${s.tanggal})</span>
+                            <span class="font-bold text-purple-700">${formatRp(s.nominal)}</span>
+                        </div>
+                    `;
+                });
+            }
+        }
+
+        // --- BAHAN BAKU LOGIC ---
+        function renderBahanList() {
+            const list = document.getElementById('bahan-list');
+            list.innerHTML = '';
+
+            if (dbBahan.length === 0) {
+                list.innerHTML = `<div class="bg-white p-4 text-center text-slate-400 text-xs rounded-2xl border">Belum ada bahan baku</div>`;
+                return;
+            }
+
+            dbBahan.forEach(b => {
+                const hargaPerUnit = b.hargaBeli / b.isiPack;
+                const unitLabel = b.satuan === 'gram' ? 'gr' : (b.satuan === 'ml' ? 'ml' : 'pcs');
+
+                list.innerHTML += `
+                    <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm flex justify-between items-center text-xs">
+                        <div>
+                            <h4 class="font-bold text-slate-800">${b.nama}</h4>
+                            <p class="text-[10px] text-slate-400">Harga Beli: ${formatRp(b.hargaBeli)} / ${b.isiPack} ${unitLabel}</p>
+                        </div>
+                        <div class="text-right flex items-center gap-2">
+                            <div>
+                                <span class="font-extrabold text-indigo-600 block">${formatRp(hargaPerUnit)}</span>
+                                <span class="text-[9px] text-slate-400">per ${unitLabel}</span>
+                            </div>
+                            <button onclick="editBahan('${b.id}')" class="w-7 h-7 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded-lg flex items-center justify-center transition">
+                                <i class="fa-solid fa-pen-to-square text-xs"></i>
+                            </button>
+                            <button onclick="hapusBahan('${b.id}')" class="w-7 h-7 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg flex items-center justify-center transition">
+                                <i class="fa-solid fa-trash text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function openBahanModal(id = null) {
+            document.getElementById('form-bahan').reset();
+            document.getElementById('input-id-bahan').value = '';
+
+            if (id) {
+                const b = dbBahan.find(item => item.id === id);
+                if (b) {
+                    document.getElementById('modal-bahan-title').innerText = "Edit Bahan Baku";
+                    document.getElementById('input-id-bahan').value = b.id;
+                    document.getElementById('input-nama-bahan').value = b.nama;
+                    document.getElementById('input-harga-beli').value = b.hargaBeli;
+                    document.getElementById('input-isi-pack').value = b.isiPack;
+                    document.getElementById('input-satuan-bahan').value = b.satuan || 'pcs';
+                }
+            } else {
+                document.getElementById('modal-bahan-title').innerText = "Tambah Bahan Baku Baru";
+            }
+            document.getElementById('modal-bahan').classList.remove('hidden');
+        }
+
+        function editBahan(id) {
+            openBahanModal(id);
+        }
+
+        function closeBahanModal() {
+            document.getElementById('modal-bahan').classList.add('hidden');
+        }
+
+        function saveBahan(e) {
+            e.preventDefault();
+            const id = document.getElementById('input-id-bahan').value;
+            const nama = document.getElementById('input-nama-bahan').value;
+            const hargaBeli = parseFloat(document.getElementById('input-harga-beli').value);
+            const isiPack = parseFloat(document.getElementById('input-isi-pack').value);
+            const satuan = document.getElementById('input-satuan-bahan').value;
+
+            if (id) {
+                const index = dbBahan.findIndex(b => b.id === id);
+                if (index !== -1) {
+                    dbBahan[index] = { id, nama, hargaBeli, isiPack, satuan };
+                }
+            } else {
+                dbBahan.push({
+                    id: Date.now().toString(),
+                    nama,
+                    hargaBeli,
+                    isiPack,
+                    satuan
+                });
+            }
+
+            localStorage.setItem('umkm_bahan', JSON.stringify(dbBahan));
+            renderBahanList();
+            renderSelectBahanResep();
+            closeBahanModal();
+        }
+
+        function hapusBahan(id) {
+            if (confirm("Hapus bahan baku ini?")) {
+                dbBahan = dbBahan.filter(b => b.id !== id);
+                localStorage.setItem('umkm_bahan', JSON.stringify(dbBahan));
+                renderBahanList();
+                renderSelectBahanResep();
+            }
+        }
+
+        // --- MENU HPP & RESEP LOGIC ---
+        function renderSelectBahanResep() {
+            const select = document.getElementById('hpp-select-bahan');
+            select.innerHTML = '';
+            dbBahan.forEach(b => {
+                const unitLabel = b.satuan === 'gram' ? 'gr' : (b.satuan === 'ml' ? 'ml' : 'pcs');
+                const hargaPerUnit = b.hargaBeli / b.isiPack;
+                select.innerHTML += `<option value="${b.id}">${b.nama} (${formatRp(hargaPerUnit)}/${unitLabel})</option>`;
+            });
+        }
+
+        function tambahBahanKeResep() {
+            const bahanId = document.getElementById('hpp-select-bahan').value;
+            const qty = parseFloat(document.getElementById('hpp-qty-bahan').value);
+
+            if (!bahanId || isNaN(qty) || qty <= 0) return;
+
+            const b = dbBahan.find(item => item.id === bahanId);
+            if (!b) return;
+
+            const existing = currentResep.find(r => r.id === bahanId);
+            if (existing) {
+                existing.qty += qty;
+            } else {
+                currentResep.push({
+                    id: b.id,
+                    nama: b.nama,
+                    hargaPerUnit: b.hargaBeli / b.isiPack,
+                    satuan: b.satuan || 'pcs',
+                    qty: qty
+                });
+            }
+
+            renderResepTable();
+        }
+
+        function renderResepTable() {
+            const tbody = document.getElementById('resep-items-body');
+            tbody.innerHTML = '';
+
+            if (currentResep.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="p-3 text-center text-slate-400 italic">Belum ada bahan ditambahkan</td></tr>`;
+                document.getElementById('hpp-total-modal').innerText = 'Rp 0';
+                hitungMarginHpp();
+                return;
+            }
+
+            let totalHpp = 0;
+            currentResep.forEach((item, index) => {
+                const subtotal = item.hargaPerUnit * item.qty;
+                totalHpp += subtotal;
+                const unitLabel = item.satuan === 'gram' ? 'gr' : (item.satuan === 'ml' ? 'ml' : 'pcs');
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="p-2 font-medium text-slate-700">${item.nama}</td>
+                        <td class="p-2 text-center text-slate-600">${item.qty} ${unitLabel}</td>
+                        <td class="p-2 text-right font-bold text-slate-800">${formatRp(subtotal)}</td>
+                        <td class="p-2 text-center">
+                            <button onclick="hapusItemResep(${index})" class="text-rose-500 hover:text-rose-700"><i class="fa-solid fa-xmark"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            document.getElementById('hpp-total-modal').innerText = formatRp(totalHpp);
+            hitungMarginHpp();
+        }
+
+        function hapusItemResep(index) {
+            currentResep.splice(index, 1);
+            renderResepTable();
+        }
+
+        function hitungMarginHpp() {
+            const totalHpp = currentResep.reduce((sum, item) => sum + (item.hargaPerUnit * item.qty), 0);
+            const hargaJual = parseFloat(document.getElementById('hpp-harga-jual').value) || 0;
+            const labaPorsi = hargaJual - totalHpp;
+            const pctMargin = hargaJual > 0 ? ((labaPorsi / hargaJual) * 100).toFixed(1) : 0;
+
+            const elEstimasi = document.getElementById('hpp-estimasi-laba');
+            if (labaPorsi >= 0) {
+                elEstimasi.className = "font-bold text-emerald-600";
+                elEstimasi.innerText = `${formatRp(labaPorsi)} (${pctMargin}%)`;
+            } else {
+                elEstimasi.className = "font-bold text-rose-600";
+                elEstimasi.innerText = `${formatRp(labaPorsi)} (${pctMargin}%)`;
+            }
+        }
+
+        function simpanMenuKePOS() {
+            const namaProduk = document.getElementById('hpp-nama-produk').value.trim();
+            const hargaJual = parseFloat(document.getElementById('hpp-harga-jual').value);
+            const hpp = currentResep.reduce((sum, item) => sum + (item.hargaPerUnit * item.qty), 0);
+
+            if (!namaProduk || isNaN(hargaJual) || currentResep.length === 0) {
+                alert("Mohon lengkapi Nama Produk, Resep Bahan, dan Rencana Harga Jual!");
+                return;
+            }
+
+            if (editingMenuId) {
+                const idx = dbMenuPOS.findIndex(m => m.id === editingMenuId);
+                if (idx !== -1) {
+                    dbMenuPOS[idx] = { id: editingMenuId, nama: namaProduk, hpp, hargaJual, resep: [...currentResep] };
+                }
+            } else {
+                dbMenuPOS.push({
+                    id: Date.now().toString(),
+                    nama: namaProduk,
+                    hpp: hpp,
+                    hargaJual: hargaJual,
+                    resep: [...currentResep]
+                });
+            }
+
+            localStorage.setItem('umkm_menu_pos', JSON.stringify(dbMenuPOS));
+            batalEditMenu();
+            renderPOSMenu();
+            renderRegisteredMenu();
+            alert("Menu berhasil disimpan ke Kasir POS!");
+        }
+
+        function editRegisteredMenu(id) {
+            const m = dbMenuPOS.find(item => item.id === id);
+            if (!m) return;
+
+            editingMenuId = m.id;
+            document.getElementById('hpp-nama-produk').value = m.nama;
+            document.getElementById('hpp-harga-jual').value = m.hargaJual;
+            currentResep = m.resep ? JSON.parse(JSON.stringify(m.resep)) : [];
+
+            document.getElementById('btn-simpan-menu').innerHTML = `<i class="fa-solid fa-pen-to-square"></i> Perbarui Menu POS`;
+            document.getElementById('btn-batal-edit-menu').classList.remove('hidden');
+
+            renderResepTable();
+            switchTab('hpp');
+        }
+
+        function batalEditMenu() {
+            editingMenuId = null;
+            document.getElementById('hpp-nama-produk').value = '';
+            document.getElementById('hpp-harga-jual').value = '';
+            currentResep = [];
+            document.getElementById('btn-simpan-menu').innerHTML = `<i class="fa-solid fa-store"></i> Simpan Ke Menu Kasir (POS)`;
+            document.getElementById('btn-batal-edit-menu').classList.add('hidden');
+            renderResepTable();
+        }
+
+        function hapusRegisteredMenu(id) {
+            if (confirm("Hapus menu ini dari Kasir POS?")) {
+                dbMenuPOS = dbMenuPOS.filter(m => m.id !== id);
+                localStorage.setItem('umkm_menu_pos', JSON.stringify(dbMenuPOS));
+                renderPOSMenu();
+                renderRegisteredMenu();
+            }
+        }
+
+        function renderRegisteredMenu() {
+            const list = document.getElementById('registered-menu-list');
+            list.innerHTML = '';
+
+            if (dbMenuPOS.length === 0) {
+                list.innerHTML = `<div class="p-3 text-center text-slate-400 text-xs italic">Belum ada menu tersimpan</div>`;
+                return;
+            }
+
+            dbMenuPOS.forEach(m => {
+                const margin = m.hargaJual - m.hpp;
+                list.innerHTML += `
+                    <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 flex justify-between items-center text-xs">
+                        <div>
+                            <h4 class="font-bold text-slate-800">${m.nama}</h4>
+                            <p class="text-[10px] text-slate-400">HPP: ${formatRp(m.hpp)} | Laba: <span class="text-emerald-600 font-bold">${formatRp(margin)}</span></p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="font-bold text-indigo-600">${formatRp(m.hargaJual)}</span>
+                            <button onclick="editRegisteredMenu('${m.id}')" class="text-indigo-600 hover:text-indigo-800 text-xs px-1"><i class="fa-solid fa-pen-to-square"></i></button>
+                            <button onclick="hapusRegisteredMenu('${m.id}')" class="text-rose-500 hover:text-rose-700 text-xs px-1"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // --- POS KATALOG & KERANJANG BELANJA ---
+        function renderPOSMenu() {
+            const grid = document.getElementById('pos-menu-grid');
+            grid.innerHTML = '';
+
+            if (dbMenuPOS.length === 0) {
+                grid.innerHTML = `<div class="col-span-2 p-6 bg-white rounded-2xl text-center text-slate-400 text-xs border">Belum ada menu. Buat di tab "Menu & HPP"!</div>`;
+                return;
+            }
+
+            dbMenuPOS.forEach(m => {
+                grid.innerHTML += `
+                    <button onclick="addToCart('${m.id}')" class="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm text-left hover:border-indigo-500 hover:shadow-md transition active:scale-95 space-y-1">
+                        <div class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
+                            <i class="fa-solid fa-mug-saucer text-xs"></i>
+                        </div>
+                        <h4 class="font-bold text-slate-800 text-xs truncate">${m.nama}</h4>
+                        <div class="flex justify-between items-center">
+                            <span class="text-indigo-600 font-extrabold text-xs">${formatRp(m.hargaJual)}</span>
+                            <span class="text-[9px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-md">HPP: ${formatRp(m.hpp)}</span>
+                        </div>
+                    </button>
+                `;
+            });
+        }
+
+        function addToCart(menuId) {
+            const m = dbMenuPOS.find(item => item.id === menuId);
+            if (!m) return;
+
+            const existing = posCart.find(c => c.id === menuId);
+            if (existing) {
+                existing.qty += 1;
+            } else {
+                posCart.push({
+                    id: m.id,
+                    nama: m.nama,
+                    hpp: m.hpp,
+                    hargaJual: m.hargaJual,
+                    qty: 1
+                });
+            }
+
+            renderCart();
+        }
+
+        function updateCartQty(menuId, delta) {
+            const item = posCart.find(c => c.id === menuId);
+            if (!item) return;
+
+            item.qty += delta;
+            if (item.qty <= 0) {
+                posCart = posCart.filter(c => c.id !== menuId);
+            }
+            renderCart();
+        }
+
+        function clearCart() {
+            posCart = [];
+            renderCart();
+        }
+
+        function renderCart() {
+            const container = document.getElementById('pos-cart-items');
+            const totalBayarEl = document.getElementById('pos-total-bayar');
+            const totalHppEl = document.getElementById('pos-total-hpp');
+            const cartCountEl = document.getElementById('pos-cart-count');
+            const btnCheckout = document.getElementById('btn-checkout');
+
+            container.innerHTML = '';
+
+            if (posCart.length === 0) {
+                container.innerHTML = `<p class="text-xs text-center text-slate-400 py-3 italic">Keranjang belanja masih kosong. Klik menu di atas!</p>`;
+                totalBayarEl.innerText = 'Rp 0';
+                totalHppEl.innerText = 'Rp 0';
+                cartCountEl.innerText = '0 Item';
+                btnCheckout.disabled = true;
+                btnCheckout.className = "w-full py-3 bg-slate-300 text-slate-500 rounded-xl font-bold text-xs shadow-sm transition flex items-center justify-center gap-2 cursor-not-allowed";
+                return;
+            }
+
+            let totalBayar = 0;
+            let totalHpp = 0;
+            let totalItemCount = 0;
+
+            posCart.forEach(c => {
+                const subtotal = c.hargaJual * c.qty;
+                totalBayar += subtotal;
+                totalHpp += c.hpp * c.qty;
+                totalItemCount += c.qty;
+
+                container.innerHTML += `
+                    <div class="flex justify-between items-center bg-slate-50 p-2 rounded-xl text-xs border border-slate-100">
+                        <div>
+                            <div class="font-bold text-slate-800">${c.nama}</div>
+                            <div class="text-[10px] text-slate-400">${formatRp(c.hargaJual)} / porsi</div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="flex items-center border rounded-lg bg-white overflow-hidden">
+                                <button onclick="updateCartQty('${c.id}', -1)" class="px-2 py-0.5 text-slate-600 hover:bg-slate-100 font-bold">-</button>
+                                <span class="px-2 text-xs font-bold text-slate-800">${c.qty}</span>
+                                <button onclick="updateCartQty('${c.id}', 1)" class="px-2 py-0.5 text-slate-600 hover:bg-slate-100 font-bold">+</button>
+                            </div>
+                            <span class="font-bold text-slate-800 w-16 text-right">${formatRp(subtotal)}</span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            totalBayarEl.innerText = formatRp(totalBayar);
+            totalHppEl.innerText = formatRp(totalHpp);
+            cartCountEl.innerText = `${totalItemCount} Item`;
+
+            btnCheckout.disabled = false;
+            btnCheckout.className = "w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs shadow-md transition flex items-center justify-center gap-2 active:scale-98 cursor-pointer";
+        }
+
+        // --- MODAL HANDLERS ---
+        function openAlokasiModal() {
+            document.getElementById('input-pct-gaji').value = dbAlokasi.gaji;
+            document.getElementById('input-pct-cadangan').value = dbAlokasi.cadangan;
+            document.getElementById('input-pct-pengembangan').value = dbAlokasi.pengembangan;
+            document.getElementById('alokasi-error').classList.add('hidden');
+            document.getElementById('modal-alokasi').classList.remove('hidden');
+        }
+
+        function closeAlokasiModal() {
+            document.getElementById('modal-alokasi').classList.add('hidden');
+        }
+
+        function saveAlokasi(e) {
+            e.preventDefault();
+            const gaji = parseFloat(document.getElementById('input-pct-gaji').value) || 0;
+            const cadangan = parseFloat(document.getElementById('input-pct-cadangan').value) || 0;
+            const pengembangan = parseFloat(document.getElementById('input-pct-pengembangan').value) || 0;
+
+            if (gaji + cadangan + pengembangan !== 100) {
+                document.getElementById('alokasi-error').classList.remove('hidden');
+                return;
+            }
+
+            dbAlokasi = { gaji, cadangan, pengembangan };
+            localStorage.setItem('umkm_alokasi', JSON.stringify(dbAlokasi));
+            renderDashboard();
+            closeAlokasiModal();
+        }
+
+        function openModalKerjaModal() {
+            document.getElementById('input-nominal-modal-kerja').value = modalKerjaAwal || '';
+            document.getElementById('modal-modal-kerja').classList.remove('hidden');
+        }
+
+        function closeModalKerjaModal() {
+            document.getElementById('modal-modal-kerja').classList.add('hidden');
+        }
+
+        function saveModalKerja(e) {
+            e.preventDefault();
+            const val = parseFloat(document.getElementById('input-nominal-modal-kerja').value) || 0;
+            modalKerjaAwal = val;
+            localStorage.setItem('umkm_modal_awal', val);
+            renderDashboard();
+            closeModalKerjaModal();
+        }
+
+        function openTambahModalSuntikanModal() {
+            document.getElementById('form-suntikan-modal').reset();
+            document.getElementById('modal-suntikan-modal').classList.remove('hidden');
+        }
+
+        function closeTambahModalSuntikanModal() {
+            document.getElementById('modal-suntikan-modal').classList.add('hidden');
+        }
+
+        function saveSuntikanModal(e) {
+            e.preventDefault();
+            const ket = document.getElementById('input-ket-suntikan').value.trim();
+            const nominal = parseFloat(document.getElementById('input-nominal-suntikan').value) || 0;
+
+            if (!ket || nominal <= 0) return;
+
+            dbSuntikanModal.push({
+                id: Date.now().toString(),
+                keterangan: ket,
+                nominal: nominal,
+                tanggal: new Date().toLocaleDateString('id-ID')
+            });
+
+            localStorage.setItem('umkm_suntikan_modal', JSON.stringify(dbSuntikanModal));
+            renderDashboard();
+            closeTambahModalSuntikanModal();
+        }
+
+        function openTarikModal(pos) {
+            document.getElementById('form-tarik-dana').reset();
+            document.getElementById('input-pos-tarik').value = pos;
+            document.getElementById('modal-tarik-title').innerText = `Penarikan Pos Dana ${pos}`;
+
+            const boxPilihan = document.getElementById('box-pilihan-penerima');
+            const boxInput = document.getElementById('box-input-nama-karyawan');
+            
+            if (pos === 'Gaji') {
+                if (boxPilihan) boxPilihan.classList.remove('hidden');
+                // Reset radio to Pemilik Usaha
+                const radioPemilik = document.querySelector('input[name="penerima_type"][value="Pemilik Usaha"]');
+                if (radioPemilik) radioPemilik.checked = true;
+                if (boxInput) boxInput.classList.add('hidden');
+            } else {
+                if (boxPilihan) boxPilihan.classList.add('hidden');
+                if (boxInput) boxInput.classList.add('hidden');
+            }
+
+            // Hitung dan tampilkan saldo yang tersedia untuk pos yang dipilih
+            const fin = calculateFinancials();
+            let saldoTersedia = 0;
+            if (pos === 'Gaji') {
+                saldoTersedia = fin.sisaGaji;
+            } else if (pos === 'Pengembangan') {
+                saldoTersedia = fin.sisaPengembangan;
+            }
+            document.getElementById('modal-tarik-saldo-tersedia').innerText = formatRp(saldoTersedia);
+
+            document.getElementById('modal-tarik-dana').classList.remove('hidden');
+        }
+
+        function closeTarikModal() {
+            document.getElementById('modal-tarik-dana').classList.add('hidden');
+        }
+
+        function togglePenerimaInput(type) {
+            const boxInput = document.getElementById('box-input-nama-karyawan');
+            const inputNama = document.getElementById('input-penerima-tarik');
+            
+            if (type === 'Karyawan') {
+                boxInput.classList.remove('hidden');
+                inputNama.setAttribute('required', 'required');
+                inputNama.focus();
+            } else {
+                boxInput.classList.add('hidden');
+                inputNama.removeAttribute('required');
+                inputNama.value = '';
+            }
+        }
+
+        function savePenarikanDana(e) {
+            e.preventDefault();
+            const pos = document.getElementById('input-pos-tarik').value;
+            let penerima = 'Pemilik Usaha';
+
+            if (pos === 'Gaji') {
+                const checkedRadio = document.querySelector('input[name="penerima_type"]:checked');
+                const type = checkedRadio ? checkedRadio.value : 'Pemilik Usaha';
+                if (type === 'Karyawan') {
+                    const namaInput = document.getElementById('input-penerima-tarik').value.trim();
+                    penerima = namaInput ? `${namaInput} (Karyawan)` : 'Karyawan';
+                } else {
+                    penerima = 'Pemilik Usaha';
+                }
+            } else {
+                penerima = 'Pemilik Usaha (Pengembangan Usaha)';
+            }
+
+            const ket = document.getElementById('input-ket-tarik').value.trim();
+            const nominal = parseFloat(document.getElementById('input-nominal-tarik').value) || 0;
+
+            if (!ket || nominal <= 0) return;
+
+            // Validasi agar penarikan tidak melebihi saldo tersedia
+            const fin = calculateFinancials();
+            const saldoTersedia = pos === 'Gaji' ? fin.sisaGaji : fin.sisaPengembangan;
+
+            if (nominal > saldoTersedia) {
+                alert(`Penarikan gagal! Nominal penarikan (${formatRp(nominal)}) melebihi saldo ${pos} yang tersedia (${formatRp(saldoTersedia)}).`);
+                return;
+            }
+
+            const tgl = new Date().toLocaleDateString('id-ID') + ' ' + new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+
+            const penarikanObj = {
+                id: Date.now().toString(),
+                pos: pos,
+                penerima: penerima,
+                keterangan: ket,
+                nominal: nominal,
+                tanggal: tgl
+            };
+
+            dbPenarikan.push(penarikanObj);
+            localStorage.setItem('umkm_penarikan', JSON.stringify(dbPenarikan));
+
+            // OTOMATIS CATAT KE TAB TRANSAKSI PENGELUARAN
+            dbTransaksi.push({
+                id: 't_penarikan_' + Date.now(),
+                jenis: 'Keluar',
+                keterangan: `[Penarikan ${pos}] ${ket} (${penerima})`,
+                nominal: nominal,
+                sumberDana: `Dana ${pos}`,
+                penerima: penerima,
+                isGaji: pos === 'Gaji',
+                tanggal: tgl
+            });
+            localStorage.setItem('umkm_transaksi', JSON.stringify(dbTransaksi));
+
+            renderDashboard();
+            renderTransaksiList();
+            closeTarikModal();
+
+            if (pos === 'Gaji') {
+                showSlipGajiModal(penarikanObj);
+            }
+        }
+
+        window.togglePenerimaInput = togglePenerimaInput;
+
+        function checkoutPOS() {
+            if (posCart.length === 0) return;
+
+            let totalBayar = 0;
+            let totalHpp = 0;
+            let itemsSummaryArray = [];
+
+            posCart.forEach(c => {
+                totalBayar += c.hargaJual * c.qty;
+                totalHpp += c.hpp * c.qty;
+                itemsSummaryArray.push(`${c.qty}x ${c.nama}`);
+            });
+
+            const itemsSummary = itemsSummaryArray.join(', ');
+            const tgl = new Date().toLocaleDateString('id-ID') + ' ' + new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+
+            const transaksiObj = {
+                id: 't_pos_' + Date.now(),
+                jenis: 'Masuk',
+                keterangan: `Penjualan POS: ${itemsSummary}`,
+                nominal: totalBayar,
+                hppTotal: totalHpp,
+                tanggal: tgl,
+                items: [...posCart]
+            };
+
+            dbTransaksi.push(transaksiObj);
+            localStorage.setItem('umkm_transaksi', JSON.stringify(dbTransaksi));
+
+            showNotaModal(transaksiObj);
+
+            posCart = [];
+            renderCart();
+            renderDashboard();
+            renderTransaksiList();
+        }
+
+        function showNotaModal(transaksiObj) {
+            currentCheckoutNota = transaksiObj;
+
+            document.getElementById('nota-nama-toko').innerText = dbToko.nama || 'KedaiUMKM Pro';
+            document.getElementById('nota-alamat-toko').innerText = dbToko.alamat || '';
+            document.getElementById('nota-telp-toko').innerText = dbToko.telepon ? `Telp/WA: ${dbToko.telepon}` : '';
+            document.getElementById('nota-tgl').innerText = `Waktu: ${transaksiObj.tanggal}`;
+            document.getElementById('nota-footer-text').innerText = dbToko.footer || 'Terima Kasih Telah Berbelanja!';
+
+            const logoContainer = document.getElementById('nota-logo-container');
+            const logoImg = document.getElementById('nota-toko-logo');
+            if (dbToko.logo) {
+                logoImg.src = dbToko.logo;
+                logoContainer.classList.remove('hidden');
+            } else {
+                logoContainer.classList.add('hidden');
+            }
+
+            const itemsContainer = document.getElementById('nota-items-list');
+            itemsContainer.innerHTML = '';
+
+            if (transaksiObj.items && transaksiObj.items.length > 0) {
+                transaksiObj.items.forEach(item => {
+                    const subtotal = item.hargaJual * item.qty;
+                    itemsContainer.innerHTML += `
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <div class="font-bold">${item.nama}</div>
+                                <div class="text-[9px] text-slate-500">${item.qty} x ${formatRp(item.hargaJual)}</div>
+                            </div>
+                            <span class="font-bold">${formatRp(subtotal)}</span>
+                        </div>
+                    `;
+                });
+            } else {
+                itemsContainer.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <div class="font-bold">${transaksiObj.keterangan}</div>
+                            <div class="text-[9px] text-slate-500">1 x ${formatRp(transaksiObj.nominal)}</div>
+                        </div>
+                        <span class="font-bold">${formatRp(transaksiObj.nominal)}</span>
+                    </div>
+                `;
+            }
+
+            document.getElementById('nota-total-bayar').innerText = formatRp(transaksiObj.nominal);
+            document.getElementById('modal-nota').classList.remove('hidden');
+        }
+
+        function closeNotaModal() {
+            document.getElementById('modal-nota').classList.add('hidden');
+        }
+
+        function sendNotaWA() {
+            if (!currentCheckoutNota) return;
+
+            const namaToko = dbToko.nama || 'KedaiUMKM Pro';
+            const alamatToko = dbToko.alamat ? `${dbToko.alamat}\n` : '';
+            const telpToko = dbToko.telepon ? `Telp/WA: ${dbToko.telepon}\n` : '';
+
+            let rincianBarang = '';
+            if (currentCheckoutNota.items && currentCheckoutNota.items.length > 0) {
+                currentCheckoutNota.items.forEach(item => {
+                    rincianBarang += `${item.nama}\n  ${item.qty} x ${formatRp(item.hargaJual)} = ${formatRp(item.hargaJual * item.qty)}\n`;
+                });
+            } else {
+                rincianBarang = `${currentCheckoutNota.keterangan}\n  1 x ${formatRp(currentCheckoutNota.nominal)} = ${formatRp(currentCheckoutNota.nominal)}\n`;
+            }
+
+            const pesanNota = `*${namaToko.toUpperCase()}*\n` +
+                `${alamatToko}` +
+                `${telpToko}` +
+                `----------------------------------------\n` +
+                `*NOTA PENJUALAN*\n` +
+                `Waktu: ${currentCheckoutNota.tanggal}\n` +
+                `----------------------------------------\n` +
+                `${rincianBarang}` +
+                `----------------------------------------\n` +
+                `*TOTAL BAYAR: ${formatRp(currentCheckoutNota.nominal)}*\n\n` +
+                `_${dbToko.footer || 'Terima Kasih Telah Berbelanja!'}_`;
+
+            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(pesanNota)}`, '_blank');
+        }
+
+        function printNotaPDF() {
+            const element = document.getElementById('nota-print-area');
+            const opt = {
+                margin:       5,
+                filename:     `Nota_Penjualan_${Date.now()}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2 },
+                jsPDF:        { unit: 'mm', format: [80, 140], orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
+        }
+
+        function hapusTransaksi(id) {
+            if (confirm("Hapus catatan transaksi ini?")) {
+                dbTransaksi = dbTransaksi.filter(t => t.id !== id);
+                localStorage.setItem('umkm_transaksi', JSON.stringify(dbTransaksi));
+                renderDashboard();
+                renderTransaksiList();
+            }
+        }
+
+        // --- SLIP GAJI LOGIC ---
+        function showSlipGajiModal(gajiObj) {
+            currentSlipGajiObj = gajiObj;
+
+            document.getElementById('slip-nama-toko').innerText = dbToko.nama || 'KedaiUMKM Pro';
+            document.getElementById('slip-alamat-toko').innerText = dbToko.alamat || '';
+            document.getElementById('slip-tgl').innerText = `Waktu: ${gajiObj.tanggal}`;
+            document.getElementById('slip-penerima').innerText = gajiObj.penerima || 'Staf / Pemilik';
+            document.getElementById('slip-keterangan').innerText = gajiObj.keterangan;
+            document.getElementById('slip-total-gaji').innerText = formatRp(gajiObj.nominal);
+            document.getElementById('slip-footer-text').innerText = `Bukti Penarikan Gaji Sah - ${dbToko.nama || 'KedaiUMKM Pro'}`;
+
+            document.getElementById('modal-slip-gaji').classList.remove('hidden');
+        }
+
+        function closeSlipGajiModal() {
+            document.getElementById('modal-slip-gaji').classList.add('hidden');
+        }
+
+        function sendSlipGajiWA() {
+            if (!currentSlipGajiObj) return;
+
+            const namaToko = dbToko.nama || 'KedaiUMKM Pro';
+            const alamatToko = dbToko.alamat ? `${dbToko.alamat}\n` : '';
+
+            const pesanSlip = `*${namaToko.toUpperCase()}*\n` +
+                `${alamatToko}` +
+                `----------------------------------------\n` +
+                `*SLIP / NOTA PENARIKAN GAJI*\n` +
+                `Waktu: ${currentSlipGajiObj.tanggal}\n` +
+                `----------------------------------------\n` +
+                `Penerima: *${currentSlipGajiObj.penerima || 'Staf / Pemilik'}*\n` +
+                `Keterangan: ${currentSlipGajiObj.keterangan}\n` +
+                `Pos Dana: Pos Dana Gaji\n` +
+                `----------------------------------------\n` +
+                `*TOTAL GAJI DITERIMA: ${formatRp(currentSlipGajiObj.nominal)}*\n\n` +
+                `_Bukti Penarikan Gaji Sah - ${namaToko}_`;
+
+            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(pesanSlip)}`, '_blank');
+        }
+
+        function printSlipGajiPDF() {
+            const element = document.getElementById('slip-gaji-print-area');
+            const opt = {
+                margin:       5,
+                filename:     `Slip_Gaji_${Date.now()}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2 },
+                jsPDF:        { unit: 'mm', format: [80, 140], orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
+        }
+
+        // --- TRANSAKSI LIST LOGIC ---
+        function renderTransaksiList() {
+            const list = document.getElementById('transaksi-list');
+            if (!list) return;
+
+            list.innerHTML = '';
+
+            if (dbTransaksi.length === 0) {
+                list.innerHTML = `<div class="bg-white p-4 text-center text-slate-400 text-xs rounded-2xl border">Belum ada data transaksi</div>`;
+                return;
+            }
+
+            dbTransaksi.slice().reverse().forEach(t => {
+                const isMasuk = t.jenis === 'Masuk';
+                const badgeColor = isMasuk ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700';
+                const icon = isMasuk ? 'fa-arrow-down-left' : 'fa-arrow-up-right';
+                const sign = isMasuk ? '+' : '-';
+                const isPosSales = t.id && t.id.startsWith('t_pos_');
+                const isGajiSlip = t.isGaji || (t.keterangan && t.keterangan.includes('[Penarikan Gaji]'));
+
+                let actionBtnHTML = '';
+                if (isPosSales) {
+                    actionBtnHTML = `
+                        <button onclick="window.showNotaFromHistoryById('${t.id}')" class="mt-1.5 px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold rounded-lg text-[10px] flex items-center gap-1 transition">
+                            <i class="fa-solid fa-receipt"></i> Struk
+                        </button>
+                    `;
+                } else if (isGajiSlip) {
+                    actionBtnHTML = `
+                        <button onclick="window.showSlipGajiById('${t.id}')" class="mt-1.5 px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold rounded-lg text-[10px] flex items-center gap-1 transition">
+                            <i class="fa-solid fa-file-invoice-dollar"></i> Slip Gaji
+                        </button>
+                    `;
+                }
+
+                list.innerHTML += `
+                    <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-xs flex justify-between items-center text-xs">
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2">
+                                <span class="px-2 py-0.5 rounded-md font-bold text-[10px] ${badgeColor} flex items-center gap-1">
+                                    <i class="fa-solid ${icon}"></i> Kas ${t.jenis}
+                                </span>
+                                <span class="text-[10px] text-slate-400">${t.tanggal || ''}</span>
+                            </div>
+                            <h4 class="font-bold text-slate-800">${t.keterangan}</h4>
+                            ${t.sumberDana ? `<p class="text-[10px] text-slate-500">Sumber: <b class="text-slate-700">${t.sumberDana}</b></p>` : ''}
+                        </div>
+                        <div class="text-right">
+                            <span class="font-extrabold text-sm ${isMasuk ? 'text-emerald-600' : 'text-rose-600'} block">
+                                ${sign} ${formatRp(t.nominal)}
+                            </span>
+                            <div class="flex justify-end gap-1.5 items-center">
+                                ${actionBtnHTML}
+                                <button onclick="hapusTransaksi('${t.id}')" class="mt-1.5 text-slate-300 hover:text-rose-500 text-xs px-1">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // MODAL TRANSAKSI PENGELUARAN
+        function openTransaksiModal(jenis = 'Keluar') {
+            const form = document.getElementById('form-transaksi');
+            if (form) form.reset();
+
+            const inputJenis = document.getElementById('input-jenis-transaksi');
+            if (inputJenis) inputJenis.value = jenis;
+
+            const title = document.getElementById('modal-transaksi-title');
+            if (title) title.innerText = "Tambah Pengeluaran Kas Usaha";
+
+            const infoKredit = document.getElementById('info-kredit-cadangan');
+            if (infoKredit) infoKredit.classList.add('hidden');
+
+            const modal = document.getElementById('modal-transaksi');
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        function closeTransaksiModal() {
+            const modal = document.getElementById('modal-transaksi');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function saveTransaksi(e) {
+            e.preventDefault();
+            const jenis = document.getElementById('input-jenis-transaksi').value;
+            const ket = document.getElementById('input-ket-transaksi').value.trim();
+            const nominal = parseFloat(document.getElementById('input-nominal-transaksi').value) || 0;
+            const sumberDana = document.getElementById('input-sumber-dana').value;
+
+            if (!ket || nominal <= 0) return;
+
+            const tgl = new Date().toLocaleDateString('id-ID') + ' ' + new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+
+            dbTransaksi.push({
+                id: 't_' + Date.now(),
+                jenis: jenis,
+                keterangan: ket,
+                nominal: nominal,
+                sumberDana: sumberDana,
+                tanggal: tgl
+            });
+
+            localStorage.setItem('umkm_transaksi', JSON.stringify(dbTransaksi));
+            renderDashboard();
+            renderTransaksiList();
+            closeTransaksiModal();
+        }
+
+        function openPelunasanCadanganModal() {
+            const form = document.getElementById('form-pelunasan-cadangan');
+            if (form) form.reset();
+            const modal = document.getElementById('modal-pelunasan-cadangan');
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        function closePelunasanCadanganModal() {
+            const modal = document.getElementById('modal-pelunasan-cadangan');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        // Deklarasi Global Explicit pada Window untuk Akses Tombol Onclick Dynamic
+        window.showNotaFromHistoryById = function(id) {
+            const transaksiObj = dbTransaksi.find(t => t.id === id);
+            if (transaksiObj) {
+                showNotaModal(transaksiObj);
+            } else {
+                alert("Data transaksi tidak ditemukan.");
+            }
+        };
+
+        window.showSlipGajiById = function(id) {
+            const t = dbTransaksi.find(item => item.id === id);
+            if (!t) {
+                alert("Data slip gaji tidak ditemukan.");
+                return;
+            }
+
+            const gajiData = {
+                tanggal: t.tanggal,
+                penerima: t.penerima || 'Staf / Pemilik',
+                keterangan: t.keterangan.replace(/\[Penarikan Gaji\]\s*/, ''),
+                nominal: t.nominal
+            };
+            showSlipGajiModal(gajiData);
+        };
+
+        window.showNotaModal = showNotaModal;
+        window.closeNotaModal = closeNotaModal;
+        window.showSlipGajiModal = showSlipGajiModal;
+        window.closeSlipGajiModal = closeSlipGajiModal;
+        window.openTarikModal = openTarikModal;
+        window.closeTarikModal = closeTarikModal;
+        window.openTransaksiModal = openTransaksiModal;
+        window.closeTransaksiModal = closeTransaksiModal;
+        window.openPelunasanCadanganModal = openPelunasanCadanganModal;
+        window.closePelunasanCadanganModal = closePelunasanCadanganModal;
+
+        // --- LAPORAN KEUANGAN LOGIC ---
+        function openLaporanModal() {
+            const fin = calculateFinancials();
+            const tgl = new Date().toLocaleDateString('id-ID') + ' ' + new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+
+            document.getElementById('lap-nama-toko').innerText = dbToko.nama || 'KedaiUMKM Pro';
+            document.getElementById('lap-alamat-toko').innerText = dbToko.alamat || '';
+            document.getElementById('lap-tgl').innerText = `Dicetak: ${tgl}`;
+
+            document.getElementById('lap-pemasukan').innerText = formatRp(fin.totalMasuk);
+            document.getElementById('lap-pengeluaran').innerText = formatRp(fin.totalKeluar);
+            document.getElementById('lap-laba-bersih').innerText = formatRp(fin.labaBersih);
+
+            document.getElementById('lap-pos-gaji').innerText = formatRp(fin.sisaGaji);
+            document.getElementById('lap-pos-cadangan').innerText = formatRp(fin.sisaCadangan);
+            document.getElementById('lap-pos-pengembangan').innerText = formatRp(fin.sisaPengembangan);
+
+            document.getElementById('modal-laporan').classList.remove('hidden');
+        }
+
+        function closeLaporanModal() {
+            document.getElementById('modal-laporan').classList.add('hidden');
+        }
+
+        function sendLaporanWA() {
+            const fin = calculateFinancials();
+            const namaToko = dbToko.nama || 'KedaiUMKM Pro';
+            const tgl = new Date().toLocaleDateString('id-ID') + ' ' + new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+
+            const pesan = `*REKAP LAPORAN KEUANGAN*\n` +
+                `*${namaToko.toUpperCase()}*\n` +
+                `Waktu: ${tgl}\n` +
+                `----------------------------------------\n` +
+                `• Total Pemasukan: ${formatRp(fin.totalMasuk)}\n` +
+                `• Total Pengeluaran: ${formatRp(fin.totalKeluar)}\n` +
+                `*ESTIMASI LABA BERSIH: ${formatRp(fin.labaBersih)}*\n` +
+                `----------------------------------------\n` +
+                `*SALDO POS DANA:*\n` +
+                `- Pos Gaji Tersedia: ${formatRp(fin.sisaGaji)}\n` +
+                `- Dana Cadangan: ${formatRp(fin.sisaCadangan)}\n` +
+                `- Dana Pengembangan: ${formatRp(fin.sisaPengembangan)}\n` +
+                `----------------------------------------\n` +
+                `_Laporan Keuangan Otomatis KedaiUMKM Pro_`;
+
+            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(pesan)}`, '_blank');
+        }
+
+        function printLaporanPDF() {
+            const element = document.getElementById('laporan-print-area');
+            const opt = {
+                margin:       5,
+                filename:     `Laporan_Keuangan_${Date.now()}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2 },
+                jsPDF:        { unit: 'mm', format: [80, 150], orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
+        }
+
+        window.openLaporanModal = openLaporanModal;
+        window.closeLaporanModal = closeLaporanModal;
+        window.sendLaporanWA = sendLaporanWA;
+        window.printLaporanPDF = printLaporanPDF;
+
+        // RESET ALL DATA
+        function resetAllData() {
+            if (confirm("Apakah Anda yakin ingin mereset seluruh data ke awal?")) {
+                localStorage.removeItem('umkm_bahan');
+                localStorage.removeItem('umkm_alokasi');
+                localStorage.removeItem('umkm_transaksi');
+                localStorage.removeItem('umkm_menu_pos');
+                localStorage.removeItem('umkm_penarikan');
+                localStorage.removeItem('umkm_pelunasan_cadangan');
+                localStorage.removeItem('umkm_modal_awal');
+                localStorage.removeItem('umkm_suntikan_modal');
+                localStorage.removeItem('umkm_toko');
+                dbBahan = [...defaultBahan];
+                dbMenuPOS = [...defaultMenuPOS];
+                dbAlokasi = { ...defaultAlokasi };
+                dbTransaksi = [...defaultTransaksi];
+                dbToko = { ...defaultToko };
+                dbPenarikan = [];
+                dbPelunasanCadangan = [];
+                dbSuntikanModal = [];
+                modalKerjaAwal = 0;
+                currentResep = [];
+                posCart = [];
+
+                renderBahanList();
+                renderSelectBahanResep();
+                renderDashboard();
+                renderTransaksiList();
+                renderResepTable();
+                renderPOSMenu();
+                renderRegisteredMenu();
+                loadPengaturanTokoForm();
+            }
+        }
+    </script>
+</body>
+</html>
